@@ -1,1 +1,1 @@
-gunicorn -w 4 -k uvicor.workers.UvicornWorker main:app
+gunicorn -w 4 -k uvicor.workers.UvicornWorker main:app --app-dir source
