@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY . .
 
-EXPOSE 3100
+ENV PORT=8000
+EXPOSE 8000
 
-CMD ["uvicorn", "--app-dir=source", "main:app"]
+CMD ["python", "main.py"]
