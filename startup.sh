@@ -1,1 +1,1 @@
-uvicorn main:app --app-dir source --workers 4 --host -0.0.0.0
+uvicorn main:app --app-dir source --host 0.0.0.0 --port 80 
