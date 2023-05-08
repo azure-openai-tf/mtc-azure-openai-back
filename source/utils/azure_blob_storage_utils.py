@@ -3,7 +3,6 @@
 @created_at 2023.05.08
 """
 import os
-from azure.identity import DefaultAzureCredential
 from azure.storage.blob.aio import BlobServiceClient
 from dotenv import load_dotenv
 from fastapi import UploadFile, HTTPException
