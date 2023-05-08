@@ -44,6 +44,35 @@ class AzureOpenAIUtils:
         openai.api_base = self.azure_openai_endpoint
         openai.api_key = self.azure_openai_key
 
+    # def cognitive_search_update_index():
+    #     # [START update_index]
+    #     name = "hotels"
+    #     fields = [
+    #         SimpleField(name="hotelId", type=SearchFieldDataType.String, key=True),
+    #         SimpleField(name="baseRate", type=SearchFieldDataType.Double),
+    #         SearchableField(name="description", type=SearchFieldDataType.String),
+    #         SearchableField(name="hotelName", type=SearchFieldDataType.String),
+    #         ComplexField(name="address", fields=[
+    #             SimpleField(name="streetAddress", type=SearchFieldDataType.String),
+    #             SimpleField(name="city", type=SearchFieldDataType.String),
+    #             SimpleField(name="state", type=SearchFieldDataType.String),
+    #         ])
+    #     ]
+    #     cors_options = CorsOptions(allowed_origins=["*"], max_age_in_seconds=60)
+    #     scoring_profile = ScoringProfile(
+    #         name="MyProfile"
+    #     )
+    #     scoring_profiles = []
+    #     scoring_profiles.append(scoring_profile)
+    #     index = SearchIndex(
+    #         name=name,
+    #         fields=fields,
+    #         scoring_profiles=scoring_profiles,
+    #         cors_options=cors_options)
+
+    #     result = client.create_or_update_index(index=index)
+    #     # [END update_index]
+
     async def execute_openai(self):
         """Excute OpenAI
 

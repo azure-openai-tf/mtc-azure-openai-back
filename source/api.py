@@ -31,7 +31,7 @@ async def read_items(skip: int = 0, limit: int = 10):
     return fake_items_db[skip : skip + limit]
 
 
-@app.get("/blobs/", status_code=status.HTTP_200_OK)
+@app.get("/blobs", status_code=status.HTTP_200_OK)
 async def blobs_list():
     """Get Blobs List
 
@@ -49,9 +49,6 @@ async def get_blob():
 
     Args:
         file (UploadFile): Upload File
-
-
-
     """
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
