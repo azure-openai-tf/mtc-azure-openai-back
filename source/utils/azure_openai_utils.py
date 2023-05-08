@@ -6,7 +6,8 @@ import os
 import urllib
 import requests
 from collections import OrderedDict
-from IPython.display import display, HTML
+
+# from IPython.display import display, HTML
 
 # LangCahin & OpenAI 패키지
 import langchain
@@ -62,17 +63,17 @@ class AzureOpenAIUtils:
         index_name = "ai-azureblob-index"
 
         url = self.azure_search_endpoint + "/indexes/" + index_name + "/docs"
-        url += "?api-version={}".format(self.azure_openai_api_version)
-        url += "&search={}".format(QUESTION)  # 질문
-        url += "&select=*"
-        # url += '&$top=5'  # 문서 개수 제한
-        url += "&queryLanguage=en-US"
-        url += "&queryType=semantic"  # 의미 체계 검색
-        url += "&semanticConfiguration=semantic-config"
-        url += "&$count=true"
-        url += "&speller=lexicon"  # 쿼리 맞춤법 검사
-        url += "&answers=extractive|count-3"
-        url += "&captions=extractive|highlight-false"
+        # url += "?api-version={}".format(self.azure_openai_api_version)
+        # url += "&search={}".format(QUESTION)  # 질문
+        # url += "&select=*"
+        # # url += '&$top=5'  # 문서 개수 제한
+        # url += "&queryLanguage=en-US"
+        # url += "&queryType=semantic"  # 의미 체계 검색
+        # url += "&semanticConfiguration=semantic-config"
+        # url += "&$count=true"
+        # url += "&speller=lexicon"  # 쿼리 맞춤법 검사
+        # url += "&answers=extractive|count-3"
+        # url += "&captions=extractive|highlight-false"
 
         params = {
             "api-version": self.azure_openai_api_version,
@@ -83,20 +84,21 @@ class AzureOpenAIUtils:
             "select": "*",
             "$count": "true",
             "speller": "lexicon",
+            "$top=5": "5",
             "answers": "extractive|count-3",
             "captions": "extractive|highlight-false",
         }
 
-        resp = requests.get(url, headers=headers)
+        resp = requests.get(url, params=params, headers=self.headers)
         search_results = resp.json()  # 결과값
 
         print("API 호출 결과 :", resp.status_code)
 
         # print(search_results)
         # semantic-config 설정 꼭 필요
-        print("검색 문서 수: {}, : 상위 문서 수: {}".format(search_results["@odata.count"], len(search_results["value"])))
+        print(f"검색 문서 수: {search_results['@odata.count']}, : 상위 문서 수: {len(search_results['value'])}")
 
-        display(HTML("<h4>상위 연관 문서</h4>"))
+        # display(HTML("<h4>상위 연관 문서</h4>"))
 
         file_content = OrderedDict()
         for result in search_results["value"]:
@@ -106,8 +108,8 @@ class AzureOpenAIUtils:
             print("path : ", result["metadata_storage_path"])
             if result["@search.rerankerScore"] > 0.04:  # Semantic Search 최대 점수 4점, 상위 40%
                 # print('##########################################################################################################')
-                display(HTML("<h1>" + str(result["metadata_storage_name"]) + ", score: " + str(result["@search.rerankerScore"]) + "</h1>"))
-                display(HTML(result["@search.captions"][0]["text"]))
+                # display(HTML("<h1>" + str(result["metadata_storage_name"]) + ", score: " + str(result["@search.rerankerScore"]) + "</h1>"))
+                # display(HTML(result["@search.captions"][0]["text"]))
                 file_content[result["metadata_storage_path"]] = {
                     "chunks": result["pages"][:1],
                     "caption": result["@search.captions"][0]["text"],
@@ -130,7 +132,9 @@ class AzureOpenAIUtils:
 
         # Embedding 모델 생성
         # 아래소스에서 chunk_size=1 이 아닌 다른 값을 넣으면 다음 소스에서 에러가 난다.
-        embeddings = OpenAIEmbeddings(model="text-embedding-ada-002", chunk_size=1, openai_api_key=AZURE_OPENAI_KEY)  # Azure OpenAI embedding 사용시 주의
+        embeddings = OpenAIEmbeddings(
+            model="text-embedding-ada-002", chunk_size=1, openai_api_key=self.azure_openai_key
+        )  # Azure OpenAI embedding 사용시 주의
         # Vector Store 생성
         # vevtor_store = FAISS.from_documents(docs, embeddings)
         # Chroma vector db에 넣음
@@ -142,9 +146,9 @@ class AzureOpenAIUtils:
         # llm = AzureChatOpenAI(deployment_name='gpt-35-turbo',  openai_api_key=AZURE_OPENAI_KEY, openai_api_base=AZURE_OPENAI_ENDPOINT, openai_api_version=AZURE_OPENAI_API_VERSION,
         llm = AzureChatOpenAI(
             deployment_name="gpt-35-turbo",
-            openai_api_key=AZURE_OPENAI_KEY,
-            openai_api_base=AZURE_OPENAI_ENDPOINT,
-            openai_api_version=AZURE_OPENAI_API_VERSION,
+            openai_api_key=self.azure_openai_key,
+            openai_api_base=self.azure_openai_endpoint,
+            openai_api_version=self.azure_openai_api_version,
             temperature=0.0,
             max_tokens=1000,
         )
@@ -160,7 +164,7 @@ class AzureOpenAIUtils:
 
         print(qa)
 
-        result = qa({"question": QUESTION})
+        result = qa({"question": question})
         # 답변 글자수 카운트
         # char_counts=0
         # ls_str = list(map(str,result))
@@ -169,6 +173,8 @@ class AzureOpenAIUtils:
 
         # print(char_counts)
 
-        print("질문 :", QUESTION)
+        print("질문 :", question)
         print("답변 :", result["answer"])
         print("📄 참고 자료 :", result["sources"].replace(",", "\n"))
+
+        return result["answer"]
