@@ -93,7 +93,7 @@ class AzureOpenAIUtils:
 
         # print(search_results)
         # semantic-config 설정 꼭 필요
-        print(search_results)
+        # print(search_results)
         print(f"검색 문서 수: {search_results['@odata.count']}, : 상위 문서 수: {len(search_results['value'])}")
 
         # display(HTML("<h4>상위 연관 문서</h4>"))
