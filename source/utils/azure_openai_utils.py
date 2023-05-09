@@ -6,6 +6,9 @@ import os
 import urllib
 import requests
 from collections import OrderedDict
+from azure.core.credentials import AzureKeyCredential
+from azure.search.documents.aio import SearchClient
+from azure.search.documents.indexes.aio import SearchIndexerClient
 
 # from IPython.display import display, HTML
 
@@ -38,74 +41,39 @@ class AzureOpenAIUtils:
         self.headers = {"Content-Type": "application/json", "api-key": self.azure_search_key}
         self.params = {"api-version": self.azure_search_api_version}  # 최신 Preview 버전 2021-04-30-preview
 
+        self.cognitive_search_credential = AzureKeyCredential(self.azure_search_key)
+
         # Azure OpenAI 연결 환경 변수 설정
         openai.api_type = "azure"  # 중요!
         openai.api_version = self.azure_openai_api_version  # 최신 preview 버전 2023-03-15-preview
         openai.api_base = self.azure_openai_endpoint
         openai.api_key = self.azure_openai_key
 
-    # def cognitive_search_update_index():
-    #     # [START update_index]
-    #     name = "hotels"
-    #     fields = [
-    #         SimpleField(name="hotelId", type=SearchFieldDataType.String, key=True),
-    #         SimpleField(name="baseRate", type=SearchFieldDataType.Double),
-    #         SearchableField(name="description", type=SearchFieldDataType.String),
-    #         SearchableField(name="hotelName", type=SearchFieldDataType.String),
-    #         ComplexField(name="address", fields=[
-    #             SimpleField(name="streetAddress", type=SearchFieldDataType.String),
-    #             SimpleField(name="city", type=SearchFieldDataType.String),
-    #             SimpleField(name="state", type=SearchFieldDataType.String),
-    #         ])
-    #     ]
-    #     cors_options = CorsOptions(allowed_origins=["*"], max_age_in_seconds=60)
-    #     scoring_profile = ScoringProfile(
-    #         name="MyProfile"
-    #     )
-    #     scoring_profiles = []
-    #     scoring_profiles.append(scoring_profile)
-    #     index = SearchIndex(
-    #         name=name,
-    #         fields=fields,
-    #         scoring_profiles=scoring_profiles,
-    #         cors_options=cors_options)
+    async def cognitive_search_run_indexer(self, index_name):
+        """cognitive_search_run_indexer"""
+        search_indexer_client = SearchIndexerClient(self.azure_search_endpoint, self.cognitive_search_credential)
+        # indexer = await search_indexer_client.get_indexer(indexer_name)
+        result = await search_indexer_client.run_indexer(index_name)
 
-    #     result = client.create_or_update_index(index=index)
-    #     # [END update_index]
+        await search_indexer_client.close()
+        print("index 업데이트 완료")
 
-    async def execute_openai(self):
-        """Excute OpenAI
+    async def cognitive_search_get_indexer_status(self, indexer_name):
+        """cognitive_search_get_indexer_status"""
+        search_indexer_client = SearchIndexerClient(self.azure_search_endpoint, self.cognitive_search_credential)
+        # indexer = await search_indexer_client.get_indexer(indexer_name)
+        return await search_indexer_client.get_indexer_status(indexer_name)
 
-        Returns:
-            : _description_
-        """
-
-        # 질문 설정
-        # QUESTION = 'How much is GPT-4 Uniform Bar Exam score? give me exact score number'
-
+    async def execute_openai(self, question, index_name):
+        """Excute OpenAI"""
         # 질문 설정
         # QUESTION = ' Azure 관리자 자격증중에 어떤 자격증이 있는지 아주 간단히 설명해줘' --> 이 메시지를 넣으면 에러가 난다..
         question = " Azure 관리자가 되고 싶은데 어떻게 해야 하는지 자격증도 설명해주고 알려줘"
 
         # Azure Cognitive Search REST API 호출(get)
-
-        index_name = "ai-azureblob-index"
-
         url = self.azure_search_endpoint + "/indexes/" + index_name + "/docs"
-        # url += "?api-version={}".format(self.azure_openai_api_version)
-        # url += "&search={}".format(QUESTION)  # 질문
-        # url += "&select=*"
-        # # url += '&$top=5'  # 문서 개수 제한
-        # url += "&queryLanguage=en-US"
-        # url += "&queryType=semantic"  # 의미 체계 검색
-        # url += "&semanticConfiguration=semantic-config"
-        # url += "&$count=true"
-        # url += "&speller=lexicon"  # 쿼리 맞춤법 검사
-        # url += "&answers=extractive|count-3"
-        # url += "&captions=extractive|highlight-false"
-
         params = {
-            "api-version": self.azure_openai_api_version,
+            "api-version": self.azure_search_api_version,
             "search": question,
             "queryLanguage": "en-US",
             "queryType": "semantic",
@@ -125,6 +93,7 @@ class AzureOpenAIUtils:
 
         # print(search_results)
         # semantic-config 설정 꼭 필요
+        print(search_results)
         print(f"검색 문서 수: {search_results['@odata.count']}, : 상위 문서 수: {len(search_results['value'])}")
 
         # display(HTML("<h4>상위 연관 문서</h4>"))
