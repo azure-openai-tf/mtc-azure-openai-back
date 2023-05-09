@@ -2,16 +2,23 @@
 @created_by ayaan
 @created_at 2023.05.08
 """
-from datetime import datetime
-from typing import Union, Optional
-from fastapi import FastAPI, UploadFile, Response, status, Form
+from fastapi import FastAPI, UploadFile, Response, status
 from utils.azure_blob_storage_utils import AzureBlobStorageUtils
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=origins,
+    allow_headers=origins,
+)
+
 
 fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
 
