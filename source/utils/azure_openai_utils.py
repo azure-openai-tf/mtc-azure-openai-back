@@ -3,21 +3,15 @@
 @created_at 2023.05.08
 """
 import os
-import urllib
 import requests
 from collections import OrderedDict
 from azure.core.credentials import AzureKeyCredential
-from azure.search.documents.aio import SearchClient
 from azure.search.documents.indexes.aio import SearchIndexerClient
 
-# from IPython.display import display, HTML
-
 # LangCahin & OpenAI 패키지
-import langchain
 import openai
 from langchain.chat_models import AzureChatOpenAI
 from langchain.vectorstores import FAISS
-from langchain.vectorstores import Chroma
 from langchain.docstore.document import Document
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.embeddings import OpenAIEmbeddings
@@ -53,7 +47,7 @@ class AzureOpenAIUtils:
         """cognitive_search_run_indexer"""
         search_indexer_client = SearchIndexerClient(self.azure_search_endpoint, self.cognitive_search_credential)
         # indexer = await search_indexer_client.get_indexer(indexer_name)
-        result = await search_indexer_client.run_indexer(index_name)
+        await search_indexer_client.run_indexer(index_name)
 
         await search_indexer_client.close()
         print("index 업데이트 완료")
@@ -119,7 +113,7 @@ class AzureOpenAIUtils:
         # AzureOpenAI Service 연결
         # 문서 분할
         docs = []
-        for key, value in file_content.items():
+        for value in file_content.items():
             # print('key : ' , key , '\t value : ' , value)
             # print(value['chunks'])
             for page in value["chunks"]:
@@ -134,10 +128,10 @@ class AzureOpenAIUtils:
             model="text-embedding-ada-002", chunk_size=1, openai_api_key=self.azure_openai_key
         )  # Azure OpenAI embedding 사용시 주의
         # Vector Store 생성
-        # vevtor_store = FAISS.from_documents(docs, embeddings)
+        vevtor_store = FAISS.from_documents(docs, embeddings)
         # Chroma vector db에 넣음
-        persist_directory = "db"
-        vevtor_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
+        # persist_directory = "db"
+        # vevtor_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
         # vevtor_store = Chroma.from_documents(docs, embeddings)
 
         # LangChain🦜 & Azure GPT🤖 연결
