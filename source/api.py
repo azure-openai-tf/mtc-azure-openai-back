@@ -105,7 +105,7 @@ async def run_indexer(indexer):
 
 
 @app.get("/search", status_code=status.HTTP_200_OK)
-async def search(query, index_name):
+async def search(query, index_name, vector_store='Chroma'):
     """Indexer Run
 
     Args:
@@ -113,7 +113,7 @@ async def search(query, index_name):
 
     """
     azure_openai_utils = AzureOpenAIUtils()
-    return await azure_openai_utils.execute_openai(query, index_name)
+    return await azure_openai_utils.execute_openai(query, index_name, vector_store)
 
 
 @app.get("/chatbot/search", status_code=status.HTTP_200_OK)

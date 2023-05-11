@@ -59,7 +59,7 @@ class AzureOpenAIUtils:
         # indexer = await search_indexer_client.get_indexer(indexer_name)
         return await search_indexer_client.get_indexer_status(indexer_name)
 
-    async def execute_openai(self, question, index_name):
+    async def execute_openai(self, question, index_name, vector_store_name):
         """Excute OpenAI"""
         # 질문 설정
         # QUESTION = ' Azure 관리자 자격증중에 어떤 자격증이 있는지 아주 간단히 설명해줘' --> 이 메시지를 넣으면 에러가 난다..
@@ -114,7 +114,7 @@ class AzureOpenAIUtils:
         # AzureOpenAI Service 연결
         # 문서 분할
         docs = []
-        for value in file_content.items():
+        for key, value in file_content.items():
             # print('key : ' , key , '\t value : ' , value)
             # print(value['chunks'])
             for page in value["chunks"]:
@@ -128,12 +128,13 @@ class AzureOpenAIUtils:
         embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", chunk_size=1, openai_api_key=self.azure_openai_key
         )  # Azure OpenAI embedding 사용시 주의
+        
         # Vector Store 생성
-        # vevtor_store = FAISS.from_documents(docs, embeddings)
-        # Chroma vector db에 넣음
         persist_directory = "db"
-        vevtor_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
-        vevtor_store = Chroma.from_documents(docs, embeddings)
+        vector_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
+        vector_store = Chroma.from_documents(docs, embeddings)
+        if vector_store_name == 'FAISS':
+            vector_store = FAISS.from_documents(docs, embeddings)
 
         # LangChain🦜 & Azure GPT🤖 연결
         # llm = AzureChatOpenAI(deployment_name='gpt-35-turbo',  openai_api_key=AZURE_OPENAI_KEY, openai_api_base=AZURE_OPENAI_ENDPOINT, openai_api_version=AZURE_OPENAI_API_VERSION,
@@ -151,7 +152,7 @@ class AzureOpenAIUtils:
             llm=llm,
             # chain_type='stuff',
             chain_type="map_reduce",
-            retriever=vevtor_store.as_retriever(),
+            retriever=vector_store.as_retriever(),
             return_source_documents=True,
         )
 
