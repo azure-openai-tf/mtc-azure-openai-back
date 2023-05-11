@@ -105,7 +105,7 @@ async def run_indexer(indexer):
 
 
 @app.get("/search", status_code=status.HTTP_200_OK)
-async def search(query, index_name, vector_store='Chroma'):
+async def search(query, index_name, vector_store='FAISS'):
     """Indexer Run
 
     Args:

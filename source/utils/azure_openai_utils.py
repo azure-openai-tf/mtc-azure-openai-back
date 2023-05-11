@@ -131,10 +131,10 @@ class AzureOpenAIUtils:
         
         # Vector Store 생성
         persist_directory = "db"
-        vector_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
-        vector_store = Chroma.from_documents(docs, embeddings)
-        if vector_store_name == 'FAISS':
-            vector_store = FAISS.from_documents(docs, embeddings)
+        vector_store = FAISS.from_documents(docs, embeddings)
+        # if vector_store_name == 'Chroma':
+		# 	vector_store = Chroma.from_documents(docs, embeddings)
+		# 	vector_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
 
         # LangChain🦜 & Azure GPT🤖 연결
         # llm = AzureChatOpenAI(deployment_name='gpt-35-turbo',  openai_api_key=AZURE_OPENAI_KEY, openai_api_base=AZURE_OPENAI_ENDPOINT, openai_api_version=AZURE_OPENAI_API_VERSION,
