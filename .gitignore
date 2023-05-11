@@ -160,5 +160,5 @@ cython_debug/
 #.idea/
 
 venv/
-venv-faiss/
+venv_faiss/
 db/

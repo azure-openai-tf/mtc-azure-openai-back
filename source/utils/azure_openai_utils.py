@@ -11,7 +11,7 @@ from azure.search.documents.indexes.aio import SearchIndexerClient
 # LangCahin & OpenAI 패키지
 import openai
 from langchain.chat_models import AzureChatOpenAI
-from langchain.vectorstores import Chroma
+# from langchain.vectorstores import Chroma
 from langchain.vectorstores import FAISS
 from langchain.docstore.document import Document
 from langchain.chains import RetrievalQAWithSourcesChain
@@ -139,7 +139,7 @@ class AzureOpenAIUtils:
         # LangChain🦜 & Azure GPT🤖 연결
         # llm = AzureChatOpenAI(deployment_name='gpt-35-turbo',  openai_api_key=AZURE_OPENAI_KEY, openai_api_base=AZURE_OPENAI_ENDPOINT, openai_api_version=AZURE_OPENAI_API_VERSION,
         llm = AzureChatOpenAI(
-            deployment_name="gpt-35-turbo",
+            deployment_name="chat",
             openai_api_key=self.azure_openai_key,
             openai_api_base=self.azure_openai_endpoint,
             openai_api_version=self.azure_openai_api_version,
