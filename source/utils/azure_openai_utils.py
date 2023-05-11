@@ -11,6 +11,7 @@ from azure.search.documents.indexes.aio import SearchIndexerClient
 # LangCahin & OpenAI 패키지
 import openai
 from langchain.chat_models import AzureChatOpenAI
+from langchain.vectorstores import Chroma
 from langchain.vectorstores import FAISS
 from langchain.docstore.document import Document
 from langchain.chains import RetrievalQAWithSourcesChain
@@ -128,11 +129,11 @@ class AzureOpenAIUtils:
             model="text-embedding-ada-002", chunk_size=1, openai_api_key=self.azure_openai_key
         )  # Azure OpenAI embedding 사용시 주의
         # Vector Store 생성
-        vevtor_store = FAISS.from_documents(docs, embeddings)
+        # vevtor_store = FAISS.from_documents(docs, embeddings)
         # Chroma vector db에 넣음
-        # persist_directory = "db"
-        # vevtor_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
-        # vevtor_store = Chroma.from_documents(docs, embeddings)
+        persist_directory = "db"
+        vevtor_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
+        vevtor_store = Chroma.from_documents(docs, embeddings)
 
         # LangChain🦜 & Azure GPT🤖 연결
         # llm = AzureChatOpenAI(deployment_name='gpt-35-turbo',  openai_api_key=AZURE_OPENAI_KEY, openai_api_base=AZURE_OPENAI_ENDPOINT, openai_api_version=AZURE_OPENAI_API_VERSION,
