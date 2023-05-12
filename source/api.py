@@ -23,6 +23,11 @@ app.add_middleware(
 )
 
 
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+
 @app.get("/blobs", status_code=status.HTTP_200_OK)
 async def blobs_list():
     """Get Blobs List
@@ -61,14 +66,14 @@ async def blobs_upload_file(file: UploadFile):
 
 @app.get("/indexes", status_code=status.HTTP_200_OK)
 async def get_index_list():
-    """Get Index List"""
+    """Get Cognitive Search Index List"""
     azure_openai_utils = AzureOpenAIUtils()
     return await azure_openai_utils.get_index_list()
 
 
 @app.get("/indexers/{indexer}/status", status_code=status.HTTP_200_OK)
 async def get_indexer_status(indexer):
-    """Get Indexer Status
+    """Get Cognitive Search Indexer Status
 
     Args:
         indexer (str): Indexer Name
@@ -80,7 +85,7 @@ async def get_indexer_status(indexer):
 
 @app.post("/indexers/{indexer}/run", status_code=status.HTTP_204_NO_CONTENT)
 async def run_indexer(indexer):
-    """Indexer Run
+    """Cognitive Search Indexer Run
 
     Args:
         indexer (str): Indexer Name
@@ -92,7 +97,7 @@ async def run_indexer(indexer):
 
 @app.get("/search", status_code=status.HTTP_200_OK)
 async def search(query, index_name, vector_store="FAISS"):
-    """Indexer Run
+    """Cognitive Search + ChatGPT Langchain 질의
 
     Args:
         indexer (str): Indexer Name
@@ -104,7 +109,7 @@ async def search(query, index_name, vector_store="FAISS"):
 
 @app.post("/chatbot/query", status_code=status.HTTP_200_OK)
 async def query_chatbot(chatbot_query: ChatbotQuery):
-    """Query Chatbot
+    """ChatGPT 3.5 질의
 
     Args:
         query (str): 질문
@@ -120,7 +125,7 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
 
 @app.get("/chatbot/search", status_code=status.HTTP_200_OK)
 async def chatbot(query):
-    """Query Chatbot test"""
+    """100대 명언 샘플로 나중에 지울 예정"""
     lst = [
         "삶이 있는 한 희망은 있다 -키케로",
         "산다는것 그것은 치열한 전투이다. -로망로랑",
