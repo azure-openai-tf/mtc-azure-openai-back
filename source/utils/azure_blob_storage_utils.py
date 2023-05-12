@@ -5,7 +5,8 @@
 import os
 from azure.storage.blob.aio import BlobServiceClient
 from dotenv import load_dotenv
-from fastapi import UploadFile, HTTPException
+from fastapi import UploadFile
+from custom_exception import APIException
 
 load_dotenv()
 
@@ -29,7 +30,7 @@ class AzureBlobStorageUtils:
         """List Blob
 
         Returns:
-            : _description_
+            list : blob Names
         """
         blobs_list = []
         async for blob in self.container_client.list_blobs():
@@ -52,5 +53,4 @@ class AzureBlobStorageUtils:
                 file_bytes = await file.read()
                 await blob_client.upload_blob(file_bytes, content_type=content_type)
             except Exception as ex:
-                print(ex)
-                return HTTPException(401, "Something went terribly wrong..")
+                raise APIException(500, "파일 업로드에 실패하였습니다.", str(ex))

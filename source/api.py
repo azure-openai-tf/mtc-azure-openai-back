@@ -33,12 +33,6 @@ async def errors_handling(request: Request, call_next):
         return JSONResponse(status_code=500, content={"code": 500, "error": str(exc)})
 
 
-@app.get("/")
-async def root():
-    """Root"""
-    return {"message": "Hello World"}
-
-
 @app.exception_handler(APIException)
 async def unicorn_exception_handler(request: Request, exc: APIException):
     """Common Exception Handler
@@ -55,6 +49,12 @@ async def unicorn_exception_handler(request: Request, exc: APIException):
         status_code=exc.code,
         content={"message": exc.message, "code": exc.code, "error": exc.error},
     )
+
+
+@app.get("/")
+async def root():
+    """Root"""
+    return {"message": "Hello World"}
 
 
 @app.get("/blobs", status_code=status.HTTP_200_OK)
