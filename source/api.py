@@ -7,6 +7,7 @@ from fastapi import FastAPI, UploadFile, Response, status
 from utils.azure_blob_storage_utils import AzureBlobStorageUtils
 from utils.azure_openai_utils import AzureOpenAIUtils
 from fastapi.middleware.cors import CORSMiddleware
+from models.models import ChatbotQuery
 
 
 app = FastAPI()
@@ -20,24 +21,6 @@ app.add_middleware(
     allow_methods=origins,
     allow_headers=origins,
 )
-
-
-fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-
-@app.get("/items/{item_id}", status_code=status.HTTP_200_OK)
-async def read_item(item_id):
-    return Response(content={"item_id": item_id})
-
-
-@app.get("/items/")
-async def read_items(skip: int = 0, limit: int = 10):
-    return fake_items_db[skip : skip + limit]
 
 
 @app.get("/blobs", status_code=status.HTTP_200_OK)
@@ -54,11 +37,7 @@ async def blobs_list():
 
 @app.get("/blobs/downloadfile", status_code=status.HTTP_200_OK)
 async def get_blob():
-    """Download File
-
-    Args:
-        file (UploadFile): Upload File
-    """
+    """Get Blob"""
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
     return await azure_blob_storage_utils.list_blobs()
@@ -78,6 +57,13 @@ async def blobs_upload_file(file: UploadFile):
     print("업로드 완료")
     azure_openai_utils = AzureOpenAIUtils()
     await azure_openai_utils.cognitive_search_run_indexer("ai-azureblob-indexer")
+
+
+@app.get("/indexes", status_code=status.HTTP_200_OK)
+async def get_index_list():
+    """Get Index List"""
+    azure_openai_utils = AzureOpenAIUtils()
+    return await azure_openai_utils.get_index_list()
 
 
 @app.get("/indexers/{indexer}/status", status_code=status.HTTP_200_OK)
@@ -105,7 +91,7 @@ async def run_indexer(indexer):
 
 
 @app.get("/search", status_code=status.HTTP_200_OK)
-async def search(query, index_name, vector_store='FAISS'):
+async def search(query, index_name, vector_store="FAISS"):
     """Indexer Run
 
     Args:
@@ -116,17 +102,25 @@ async def search(query, index_name, vector_store='FAISS'):
     return await azure_openai_utils.execute_openai(query, index_name, vector_store)
 
 
-@app.get("/chatbot/search", status_code=status.HTTP_200_OK)
-async def chatbot(query):
-    """Query To ChatBOT
+@app.post("/chatbot/query", status_code=status.HTTP_200_OK)
+async def query_chatbot(chatbot_query: ChatbotQuery):
+    """Query Chatbot
 
     Args:
         query (str): 질문
+        messages (list, optional): Prompt
 
     Returns:
-        str: 답변
+        dict: 답변 & Prompt
     """
 
+    azure_openai_utils = AzureOpenAIUtils()
+    return await azure_openai_utils.query_openai(chatbot_query.query, chatbot_query.messages)
+
+
+@app.get("/chatbot/search", status_code=status.HTTP_200_OK)
+async def chatbot(query):
+    """Query Chatbot test"""
     lst = [
         "삶이 있는 한 희망은 있다 -키케로",
         "산다는것 그것은 치열한 전투이다. -로망로랑",

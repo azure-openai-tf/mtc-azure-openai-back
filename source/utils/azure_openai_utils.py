@@ -7,10 +7,12 @@ import requests
 from collections import OrderedDict
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.indexes.aio import SearchIndexerClient
+from azure.search.documents.indexes.aio import SearchIndexClient
 
 # LangCahin & OpenAI 패키지
 import openai
 from langchain.chat_models import AzureChatOpenAI
+
 # from langchain.vectorstores import Chroma
 from langchain.vectorstores import FAISS
 from langchain.docstore.document import Document
@@ -44,6 +46,18 @@ class AzureOpenAIUtils:
         openai.api_base = self.azure_openai_endpoint
         openai.api_key = self.azure_openai_key
 
+    async def get_index_list(self):
+        """cognitive Search Get Index List"""
+        search_index_client = SearchIndexClient(self.azure_search_endpoint, self.cognitive_search_credential)
+        # indexer = await search_indexer_client.get_indexer(indexer_name)
+        index_list = []
+        async for index in search_index_client.list_indexes():
+            index_list.append(index.name)
+
+        await search_index_client.close()
+
+        return index_list
+
     async def cognitive_search_run_indexer(self, index_name):
         """cognitive_search_run_indexer"""
         search_indexer_client = SearchIndexerClient(self.azure_search_endpoint, self.cognitive_search_credential)
@@ -57,7 +71,35 @@ class AzureOpenAIUtils:
         """cognitive_search_get_indexer_status"""
         search_indexer_client = SearchIndexerClient(self.azure_search_endpoint, self.cognitive_search_credential)
         # indexer = await search_indexer_client.get_indexer(indexer_name)
-        return await search_indexer_client.get_indexer_status(indexer_name)
+        result = await search_indexer_client.get_indexer_status(indexer_name)
+
+        await search_indexer_client.close()
+        return result
+
+    async def query_openai(self, query, messages):
+        """Query Open AI
+
+        Args:
+            query (str): 질의
+            messages (list): Messages
+
+        Returns:
+            dict: messages & answer
+        """
+        if len(messages) == 0:
+            messages = [
+                {"role": "system", "content": "Assistant is a large language model trained by OpenAI."},
+                {"role": "user", "content": query},
+            ]
+        else:
+            messages.append({"role": "user", "content": query})
+
+        response = openai.ChatCompletion.create(engine="chat", messages=messages)
+        messages.append(response["choices"][0]["message"])
+
+        result = {"messages": messages, "answer": response["choices"][0]["message"]["content"]}
+
+        return result
 
     async def execute_openai(self, question, index_name, vector_store_name):
         """Excute OpenAI"""
@@ -128,13 +170,13 @@ class AzureOpenAIUtils:
         embeddings = OpenAIEmbeddings(
             model="text-embedding-ada-002", chunk_size=1, openai_api_key=self.azure_openai_key
         )  # Azure OpenAI embedding 사용시 주의
-        
+
         # Vector Store 생성
-        persist_directory = "db"
         vector_store = FAISS.from_documents(docs, embeddings)
         # if vector_store_name == 'Chroma':
-		# 	vector_store = Chroma.from_documents(docs, embeddings)
-		# 	vector_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
+        # persist_directory = "db"
+        # 	vector_store = Chroma.from_documents(docs, embeddings)
+        # 	vector_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
 
         # LangChain🦜 & Azure GPT🤖 연결
         # llm = AzureChatOpenAI(deployment_name='gpt-35-turbo',  openai_api_key=AZURE_OPENAI_KEY, openai_api_base=AZURE_OPENAI_ENDPOINT, openai_api_version=AZURE_OPENAI_API_VERSION,
