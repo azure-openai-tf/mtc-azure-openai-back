@@ -4,6 +4,7 @@
 """
 import os
 import requests
+from custom_exception import APIException
 from collections import OrderedDict
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.indexes.aio import SearchIndexerClient
@@ -45,6 +46,12 @@ class AzureOpenAIUtils:
         openai.api_version = self.azure_openai_api_version  # 최신 preview 버전 2023-03-15-preview
         openai.api_base = self.azure_openai_endpoint
         openai.api_key = self.azure_openai_key
+
+    async def get_index(self, index_name):
+        """cognitive Search Get Index"""
+        search_index_client = SearchIndexClient(self.azure_search_endpoint, self.cognitive_search_credential)
+        # indexer = await search_indexer_client.get_indexer(indexer_name)
+        return search_index_client.get_index(index_name)
 
     async def get_index_list(self):
         """cognitive Search Get Index List"""
@@ -118,7 +125,7 @@ class AzureOpenAIUtils:
             "select": "*",
             "$count": "true",
             "speller": "lexicon",
-            "$top=5": "5",
+            "$top": "5",
             "answers": "extractive|count-3",
             "captions": "extractive|highlight-false",
         }
@@ -127,6 +134,9 @@ class AzureOpenAIUtils:
         search_results = resp.json()  # 결과값
 
         print("API 호출 결과 :", resp.status_code)
+
+        if resp.status_code != 200:
+            raise APIException(resp.status_code, "Cognitive Search API 실패", error=resp.json())
 
         # print(search_results)
         # semantic-config 설정 꼭 필요

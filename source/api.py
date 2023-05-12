@@ -3,12 +3,13 @@
 @created_at 2023.05.08
 """
 import random
-from fastapi import FastAPI, UploadFile, Response, status
+from fastapi import FastAPI, UploadFile, status, Request
+from fastapi.responses import JSONResponse
+from custom_exception import APIException
 from utils.azure_blob_storage_utils import AzureBlobStorageUtils
 from utils.azure_openai_utils import AzureOpenAIUtils
 from fastapi.middleware.cors import CORSMiddleware
 from models.models import ChatbotQuery
-
 
 app = FastAPI()
 
@@ -23,9 +24,37 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def errors_handling(request: Request, call_next):
+    """Common Error Middleware"""
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"code": 500, "error": str(exc)})
+
+
 @app.get("/")
 async def root():
+    """Root"""
     return {"message": "Hello World"}
+
+
+@app.exception_handler(APIException)
+async def unicorn_exception_handler(request: Request, exc: APIException):
+    """Common Exception Handler
+
+    Args:
+        request (Request): Request
+        exc (APIException): Api Exception
+
+    Returns:
+        json: {"message": "message", "code": 500, "error": "error Message"}
+    """
+    print(request)
+    return JSONResponse(
+        status_code=exc.code,
+        content={"message": exc.message, "code": exc.code, "error": exc.error},
+    )
 
 
 @app.get("/blobs", status_code=status.HTTP_200_OK)
@@ -104,7 +133,12 @@ async def search(query, index_name, vector_store="FAISS"):
 
     """
     azure_openai_utils = AzureOpenAIUtils()
-    return await azure_openai_utils.execute_openai(query, index_name, vector_store)
+    index_list = await azure_openai_utils.get_index_list()
+
+    if index_name in index_list:
+        return await azure_openai_utils.execute_openai(query, index_name, vector_store)
+    else:
+        raise APIException(404, "Cognitive Search 인덱스를 찾을 수 없습니다.")
 
 
 @app.post("/chatbot/query", status_code=status.HTTP_200_OK)

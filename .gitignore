@@ -163,3 +163,4 @@ venv/
 venv_faiss/
 venv-faiss/
 db/
+api-log
