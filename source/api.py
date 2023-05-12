@@ -57,7 +57,7 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/blobs", status_code=status.HTTP_200_OK)
+@app.get("/blobs", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
 async def blobs_list():
     """Get Blobs List
 
@@ -69,7 +69,7 @@ async def blobs_list():
     return await azure_blob_storage_utils.list_blobs()
 
 
-@app.get("/blobs/downloadfile", status_code=status.HTTP_200_OK)
+@app.get("/blobs/downloadfile", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
 async def get_blob():
     """Get Blob"""
     azure_blob_storage_utils = AzureBlobStorageUtils()
@@ -77,7 +77,7 @@ async def get_blob():
     return await azure_blob_storage_utils.list_blobs()
 
 
-@app.post("/blobs/uploadfile", status_code=status.HTTP_204_NO_CONTENT)
+@app.post("/blobs/uploadfile", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
 async def blobs_upload_file(file: UploadFile):
     """Blob Upload File
 
@@ -93,14 +93,14 @@ async def blobs_upload_file(file: UploadFile):
     await azure_openai_utils.cognitive_search_run_indexer("ai-azureblob-indexer")
 
 
-@app.get("/indexes", status_code=status.HTTP_200_OK)
+@app.get("/indexes", status_code=status.HTTP_200_OK, tags=["Azure Cognitive Search"])
 async def get_index_list():
     """Get Cognitive Search Index List"""
     azure_openai_utils = AzureOpenAIUtils()
     return await azure_openai_utils.get_index_list()
 
 
-@app.get("/indexers/{indexer}/status", status_code=status.HTTP_200_OK)
+@app.get("/indexers/{indexer}/status", status_code=status.HTTP_200_OK, tags=["Azure Cognitive Search"])
 async def get_indexer_status(indexer):
     """Get Cognitive Search Indexer Status
 
@@ -112,7 +112,7 @@ async def get_indexer_status(indexer):
     return await azure_openai_utils.cognitive_search_get_indexer_status(indexer)
 
 
-@app.post("/indexers/{indexer}/run", status_code=status.HTTP_204_NO_CONTENT)
+@app.post("/indexers/{indexer}/run", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Cognitive Search"])
 async def run_indexer(indexer):
     """Cognitive Search Indexer Run
 
@@ -124,7 +124,7 @@ async def run_indexer(indexer):
     await azure_openai_utils.cognitive_search_run_indexer(indexer)
 
 
-@app.get("/search", status_code=status.HTTP_200_OK)
+@app.get("/search", status_code=status.HTTP_200_OK, tags=["LangChain"])
 async def search(query, index_name, vector_store="FAISS"):
     """Cognitive Search + ChatGPT Langchain 질의
 
@@ -141,7 +141,7 @@ async def search(query, index_name, vector_store="FAISS"):
         raise APIException(404, "Cognitive Search 인덱스를 찾을 수 없습니다.")
 
 
-@app.post("/chatbot/query", status_code=status.HTTP_200_OK)
+@app.post("/chatbot/query", status_code=status.HTTP_200_OK, tags=["ChatGPT"])
 async def query_chatbot(chatbot_query: ChatbotQuery):
     """ChatGPT 3.5 질의
 
@@ -157,7 +157,7 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
     return await azure_openai_utils.query_openai(chatbot_query.query, chatbot_query.messages)
 
 
-@app.get("/chatbot/search", status_code=status.HTTP_200_OK)
+@app.get("/chatbot/search", status_code=status.HTTP_200_OK, tags=["ChatGPT"])
 async def chatbot(query):
     """100대 명언 샘플로 나중에 지울 예정"""
     lst = [
