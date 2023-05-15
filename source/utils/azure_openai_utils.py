@@ -50,20 +50,38 @@ class AzureOpenAIUtils:
     async def get_index(self, index_name):
         """cognitive Search Get Index"""
         search_index_client = SearchIndexClient(self.azure_search_endpoint, self.cognitive_search_credential)
-        # indexer = await search_indexer_client.get_indexer(indexer_name)
-        return search_index_client.get_index(index_name)
+        index = await search_index_client.get_index(index_name)
+        await search_index_client.close()
+        return index
+
+    async def get_indexer(self, indexer_name):
+        """cognitive Search Get Indexer"""
+        search_indexer_client = SearchIndexerClient(self.azure_search_endpoint, self.cognitive_search_credential)
+        indexer = await search_indexer_client.get_index(indexer_name)
+        await search_indexer_client.close()
+        return indexer
 
     async def get_index_list(self):
         """cognitive Search Get Index List"""
         search_index_client = SearchIndexClient(self.azure_search_endpoint, self.cognitive_search_credential)
-        # indexer = await search_indexer_client.get_indexer(indexer_name)
         index_list = []
         async for index in search_index_client.list_indexes():
-            index_list.append(index.name)
+            index_list.append({"index_name": index.name})
 
         await search_index_client.close()
 
         return index_list
+
+    async def get_indexer_list(self):
+        """cognitive Search Get Indexer List"""
+        search_indexer_client = SearchIndexerClient(self.azure_search_endpoint, self.cognitive_search_credential)
+        indexer_list = []
+        for indexer in await search_indexer_client.get_indexers():
+            indexer_list.append({"indexer_name": indexer.name, "target_index_name": indexer.target_index_name})
+
+        await search_indexer_client.close()
+
+        return indexer_list
 
     async def cognitive_search_run_indexer(self, index_name):
         """cognitive_search_run_indexer"""

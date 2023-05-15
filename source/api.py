@@ -100,6 +100,13 @@ async def get_index_list():
     return await azure_openai_utils.get_index_list()
 
 
+@app.get("/indexers", status_code=status.HTTP_200_OK, tags=["Azure Cognitive Search"])
+async def get_indexer_list():
+    """Get Cognitive Search Indexer List"""
+    azure_openai_utils = AzureOpenAIUtils()
+    return await azure_openai_utils.get_indexer_list()
+
+
 @app.get("/indexers/{indexer}/status", status_code=status.HTTP_200_OK, tags=["Azure Cognitive Search"])
 async def get_indexer_status(indexer):
     """Get Cognitive Search Indexer Status
@@ -129,13 +136,14 @@ async def search(query, index_name, vector_store="FAISS"):
     """Cognitive Search + ChatGPT Langchain 질의
 
     Args:
-        indexer (str): Indexer Name
+        indexer (str): Index Name
+        query (str): 질문
+        vector_store(str): 벡터 DB Store
 
     """
     azure_openai_utils = AzureOpenAIUtils()
     index_list = await azure_openai_utils.get_index_list()
-
-    if index_name in index_list:
+    if len(list(filter(lambda x: x["index_name"] == index_name, index_list))) > 0:
         return await azure_openai_utils.execute_openai(query, index_name, vector_store)
     else:
         raise APIException(404, "Cognitive Search 인덱스를 찾을 수 없습니다.")
@@ -149,7 +157,7 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
         query (str): 질문
         messages (list, optional): Prompt
 
-    Returns:
+    Returns:ws
         dict: 답변 & Prompt
     """
 
