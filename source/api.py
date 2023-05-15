@@ -9,7 +9,7 @@ from custom_exception import APIException
 from utils.azure_blob_storage_utils import AzureBlobStorageUtils
 from utils.azure_openai_utils import AzureOpenAIUtils
 from fastapi.middleware.cors import CORSMiddleware
-from models.models import ChatbotQuery, CreateContainerBody
+from models.models import ChatbotQuery, CreateContainerBody, DeleteBlobsBody
 from azure.core.exceptions import AzureError
 
 app = FastAPI()
@@ -109,11 +109,11 @@ async def upload_blobs(container, file: UploadFile):
 
 
 @app.delete("/containers/{container}/blobs", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
-async def delete_to_container(container, file: UploadFile):
+async def delete_blobs(container, delete_blobs_body: DeleteBlobsBody):
     """Delete Blobs"""
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
-    return await azure_blob_storage_utils.upload_to_container(container, file, file.filename, file.content_type)
+    return await azure_blob_storage_utils.delete_blobs(container, delete_blobs_body.file_names)
 
 
 @app.get("/containers/{container}/blobs", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])

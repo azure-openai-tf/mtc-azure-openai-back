@@ -11,6 +11,12 @@ class CreateContainerBody(BaseModel):
     name: str
 
 
+class DeleteBlobsBody(BaseModel):
+    """DeleteBlobsBody"""
+
+    file_names: list[str | None] = []
+
+
 class ChatbotQuery(BaseModel):
     """ChatbotQuery"""
 

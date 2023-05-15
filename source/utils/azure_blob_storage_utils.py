@@ -109,6 +109,27 @@ class AzureBlobStorageUtils:
             finally:
                 await self.close_container_client(container_client)
 
+    async def delete_blobs(self, container_name: str, file_names: list[str]):
+        """Delete Blobs
+
+        Args:
+            file (UploadFile): 파일객체
+            file_name (str): 파일명
+            content_type (str): content-type
+        """
+
+        blobs_list = await self.list_blobs(container_name)
+
+        for file_name in file_names:
+            if not file_name in blobs_list:
+                raise APIException(404, "삭제할 파일을 찾을 수 없습니다.")
+
+        container_client = self.blob_service_client.get_container_client(container_name)
+        try:
+            await container_client.delete_blobs(*file_names)
+        finally:
+            await self.close_container_client(container_client)
+
     async def close_container_client(self, container_client: None | ContainerClient):
         """close_container_client"""
         if container_client:
