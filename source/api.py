@@ -9,7 +9,8 @@ from custom_exception import APIException
 from utils.azure_blob_storage_utils import AzureBlobStorageUtils
 from utils.azure_openai_utils import AzureOpenAIUtils
 from fastapi.middleware.cors import CORSMiddleware
-from models.models import ChatbotQuery
+from models.models import ChatbotQuery, CreateContainerBody
+from azure.core.exceptions import AzureError
 
 app = FastAPI()
 
@@ -29,8 +30,10 @@ async def errors_handling(request: Request, call_next):
     """Common Error Middleware"""
     try:
         return await call_next(request)
+    except AzureError as azure_exc:
+        return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
     except Exception as exc:
-        return JSONResponse(status_code=500, content={"code": 500, "error": str(exc)})
+        return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
 
 
 @app.exception_handler(APIException)
@@ -44,7 +47,7 @@ async def unicorn_exception_handler(request: Request, exc: APIException):
     Returns:
         json: {"message": "message", "code": 500, "error": "error Message"}
     """
-    print(request)
+    # print(request)
     return JSONResponse(
         status_code=exc.code,
         content={"message": exc.message, "code": exc.code, "error": exc.error},
@@ -57,8 +60,48 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/blobs", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
-async def blobs_list():
+@app.get("/containers", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
+async def containers_list():
+    """Get container Names List
+
+    Returns:
+        list: container Names list
+    """
+    azure_blob_storage_utils = AzureBlobStorageUtils()
+
+    return await azure_blob_storage_utils.list_containers()
+
+
+@app.post("/containers", status_code=status.HTTP_201_CREATED, tags=["Azure Blob Storage"])
+async def create_container(create_container_body: CreateContainerBody):
+    """Create Container
+
+    Args:
+        name (CreateContainerBody): 이름
+
+    Returns:
+        _type_: _description_
+    """
+    azure_blob_storage_utils = AzureBlobStorageUtils()
+
+    return await azure_blob_storage_utils.create_container(create_container_body.name)
+
+
+@app.post("/containers/{container}/uploadfile", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
+async def upload_to_container(container, file: UploadFile):
+    """Container Upload File
+
+    Args:
+        file (UploadFile): Upload File
+
+    """
+    azure_blob_storage_utils = AzureBlobStorageUtils()
+
+    return await azure_blob_storage_utils.upload_to_container(container, file, file.filename, file.content_type)
+
+
+@app.get("/containers/{container}/blobs", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
+async def blobs_list(container):
     """Get Blobs List
 
     Returns:
@@ -66,31 +109,7 @@ async def blobs_list():
     """
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
-    return await azure_blob_storage_utils.list_blobs()
-
-
-@app.get("/blobs/downloadfile", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
-async def get_blob():
-    """Get Blob"""
-    azure_blob_storage_utils = AzureBlobStorageUtils()
-
-    return await azure_blob_storage_utils.list_blobs()
-
-
-@app.post("/blobs/uploadfile", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
-async def blobs_upload_file(file: UploadFile):
-    """Blob Upload File
-
-    Args:
-        file (UploadFile): Upload File
-
-    """
-    azure_blob_storage_utils = AzureBlobStorageUtils()
-    await azure_blob_storage_utils.upload_to_azure(file, file.filename, file.content_type)
-
-    print("업로드 완료")
-    azure_openai_utils = AzureOpenAIUtils()
-    await azure_openai_utils.cognitive_search_run_indexer("ai-azureblob-indexer")
+    return await azure_blob_storage_utils.list_blobs(container)
 
 
 @app.get("/indexes", status_code=status.HTTP_200_OK, tags=["Azure Cognitive Search"])

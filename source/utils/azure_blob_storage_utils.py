@@ -3,10 +3,11 @@
 @created_at 2023.05.08
 """
 import os
-from azure.storage.blob.aio import BlobServiceClient
+from azure.storage.blob.aio import BlobServiceClient, ContainerClient
 from dotenv import load_dotenv
 from fastapi import UploadFile
 from custom_exception import APIException
+from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError, HttpResponseError
 
 load_dotenv()
 
@@ -19,26 +20,60 @@ class AzureBlobStorageUtils:
 
     azure_storage_account = os.getenv("AZURE_STORAGE_ACCOUNT")
     azure_storage_key = os.getenv("AZURE_STORAGE_KEY")
-    azure_container_name = os.getenv("AZURE_CONTAINER_NAME")
 
     def __init__(self):
         connection_str = f"DefaultEndpointsProtocol=https;AccountName={self.azure_storage_account};AccountKey={self.azure_storage_key};EndpointSuffix=core.windows.net"
         self.blob_service_client = BlobServiceClient.from_connection_string(connection_str)
-        self.container_client = self.blob_service_client.get_container_client(self.azure_container_name)
+        # self.container_client = self.blob_service_client.get_container_client(container_name)
 
-    async def list_blobs(self):
+    async def list_containers(self):
+        """List Container
+
+        Returns:
+            list : Container Names
+        """
+        container_list = []
+        async for container in self.blob_service_client.list_containers(include_metadata=True):
+            container_list.append(container.name)
+
+        return container_list
+
+    async def list_blobs(self, container_name):
         """List Blob
 
         Returns:
             list : blob Names
         """
+        container_client = None
         blobs_list = []
-        async for blob in self.container_client.list_blobs():
-            blobs_list.append(blob.name)
+        try:
+            container_client = self.blob_service_client.get_container_client(container_name)
+            async for blob in container_client.list_blobs():
+                blobs_list.append(blob.name)
 
-        return blobs_list
+            return blobs_list
+        except ResourceNotFoundError as exp:
+            raise APIException(404, "컨테이너를 찾을 수 없습니다.", str(exp))
+        finally:
+            await self.close_container_client(container_client)
 
-    async def upload_to_azure(self, file: UploadFile, file_name: str, content_type: str):
+    async def create_container(self, container_name: str):
+        """Create Contrainer"""
+        container_client = None
+
+        try:
+            container_client = await self.blob_service_client.create_container(name=container_name)
+            result = await container_client.get_container_properties()
+
+            return result
+        except ResourceExistsError as ex:
+            raise APIException(400, "중복된 컨테이너가 존재합니다.", str(ex))
+        except HttpResponseError as exp:
+            raise APIException(400, "컨테이너명이 형식에 맞지 않습니다.", str(exp))
+        finally:
+            await self.close_container_client(container_client)
+
+    async def upload_to_container(self, container_name: str, file: UploadFile, file_name: str, content_type: str):
         """Upload To Azure
 
         Args:
@@ -46,11 +81,23 @@ class AzureBlobStorageUtils:
             file_name (str): 파일명
             content_type (str): content-type
         """
+        container_client = self.blob_service_client.get_container_client(container_name)
 
         async with self.blob_service_client:
             try:
-                blob_client = self.container_client.get_blob_client(file_name)
+                blob_client = container_client.get_blob_client(file_name)
                 file_bytes = await file.read()
                 await blob_client.upload_blob(file_bytes, content_type=content_type)
+
+            except ResourceExistsError as exc:
+                raise APIException(400, "중복된 파일이 존재합니다.", str(exc))
             except Exception as ex:
                 raise APIException(500, "파일 업로드에 실패하였습니다.", str(ex))
+            finally:
+                await self.close_container_client(container_client)
+
+    async def close_container_client(self, container_client: None | ContainerClient):
+        """close_container_client"""
+        if container_client:
+            print("Connection Close")
+            await container_client.close()

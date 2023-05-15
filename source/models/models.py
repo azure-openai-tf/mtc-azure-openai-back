@@ -5,6 +5,12 @@
 from pydantic import BaseModel
 
 
+class CreateContainerBody(BaseModel):
+    """CreateContainerBody"""
+
+    name: str
+
+
 class ChatbotQuery(BaseModel):
     """ChatbotQuery"""
 
