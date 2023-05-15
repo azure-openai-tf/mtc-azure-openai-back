@@ -87,14 +87,30 @@ async def create_container(create_container_body: CreateContainerBody):
     return await azure_blob_storage_utils.create_container(create_container_body.name)
 
 
-@app.post("/containers/{container}/uploadfile", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
-async def upload_to_container(container, file: UploadFile):
-    """Container Upload File
+@app.delete("/containers/{container}", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
+async def delete_container(container):
+    """Create Container"""
+    azure_blob_storage_utils = AzureBlobStorageUtils()
+
+    return await azure_blob_storage_utils.delete_container(container)
+
+
+@app.post("/containers/{container}/blobs", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
+async def upload_blobs(container, file: UploadFile):
+    """Upload Blob
 
     Args:
         file (UploadFile): Upload File
 
     """
+    azure_blob_storage_utils = AzureBlobStorageUtils()
+
+    return await azure_blob_storage_utils.upload_to_container(container, file, file.filename, file.content_type)
+
+
+@app.delete("/containers/{container}/blobs", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
+async def delete_to_container(container, file: UploadFile):
+    """Delete Blobs"""
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
     return await azure_blob_storage_utils.upload_to_container(container, file, file.filename, file.content_type)

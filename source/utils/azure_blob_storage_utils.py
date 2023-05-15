@@ -73,6 +73,19 @@ class AzureBlobStorageUtils:
         finally:
             await self.close_container_client(container_client)
 
+    async def delete_container(self, container_name: str):
+        """Delete Contrainer"""
+        container_client = self.blob_service_client.get_container_client(container_name)
+
+        try:
+            await container_client.delete_container()
+        except ResourceNotFoundError as ex:
+            raise APIException(404, "컨테이너를 찾을 수 없습니다.", str(ex))
+        except HttpResponseError as exc:
+            raise APIException(404, "컨테이너명이 형식에 맞지 않습니다.", str(exc))
+        finally:
+            await self.close_container_client(container_client)
+
     async def upload_to_container(self, container_name: str, file: UploadFile, file_name: str, content_type: str):
         """Upload To Azure
 
