@@ -128,11 +128,7 @@ class AzureOpenAIUtils:
 
     async def execute_openai(self, question, index_name, vector_store_name):
         """Excute OpenAI"""
-        # 질문 설정
-        # QUESTION = ' Azure 관리자 자격증중에 어떤 자격증이 있는지 아주 간단히 설명해줘' --> 이 메시지를 넣으면 에러가 난다..
-        # question = " Azure 관리자가 되고 싶은데 어떻게 해야 하는지 자격증도 설명해주고 알려줘"
-
-        # Azure Cognitive Search REST API 호출(get)
+        # Call Cognitive API
         url = self.azure_search_endpoint + "/indexes/" + index_name + "/docs"
         params = {
             "api-version": self.azure_search_api_version,
@@ -151,94 +147,64 @@ class AzureOpenAIUtils:
         resp = requests.get(url, params=params, headers=self.headers)
         search_results = resp.json()  # 결과값
 
-        print("API 호출 결과 :", resp.status_code)
-
         if resp.status_code != 200:
             raise APIException(resp.status_code, "Cognitive Search API 실패", error=resp.json())
 
-        # print(search_results)
-        # semantic-config 설정 꼭 필요
-        # print(search_results)
-        print(f"검색 문서 수: {search_results['@odata.count']}, : 상위 문서 수: {len(search_results['value'])}")
+        if search_results["@odata.count"] == 0:
+            return "자료를 찾지 못하였습니다."
+        else:
+            file_content = OrderedDict()
+            for result in search_results["value"]:
+                if result["@search.rerankerScore"] > 0.04:  # Semantic Search 최대 점수 4점, 상위 40%
+                    file_content[result["metadata_storage_path"]] = {
+                        "chunks": result["pages"][:1],
+                        "caption": result["@search.captions"][0]["text"],
+                        "score": result["@search.rerankerScore"],
+                        "file_name": result["metadata_storage_name"],
+                    }
 
-        # display(HTML("<h4>상위 연관 문서</h4>"))
+            # AzureOpenAI Service 연결
+            docs = []
+            for key, value in file_content.items():
+                for page in value["chunks"]:
+                    docs.append(Document(page_content=page, metadata={"source": value["file_name"]}))
 
-        file_content = OrderedDict()
-        for result in search_results["value"]:
-            # print('result : ' , result)
-            # print(result['@search.rerankerScore'])
-            # print('file_content : ', file_content)
-            print("path : ", result["metadata_storage_path"])
-            if result["@search.rerankerScore"] > 0.04:  # Semantic Search 최대 점수 4점, 상위 40%
-                # print('##########################################################################################################')
-                # display(HTML("<h1>" + str(result["metadata_storage_name"]) + ", score: " + str(result["@search.rerankerScore"]) + "</h1>"))
-                # display(HTML(result["@search.captions"][0]["text"]))
-                file_content[result["metadata_storage_path"]] = {
-                    "chunks": result["pages"][:1],
-                    "caption": result["@search.captions"][0]["text"],
-                    "score": result["@search.rerankerScore"],
-                    "file_name": result["metadata_storage_name"],
-                }
-                # print('file_content : ', file_content)
+            # Embedding 모델 생성
+            # 아래소스에서 chunk_size=1 이 아닌 다른 값을 넣으면 다음 소스에서 에러가 난다.
+            embeddings = OpenAIEmbeddings(
+                model="text-embedding-ada-002", chunk_size=1, openai_api_key=self.azure_openai_key
+            )  # Azure OpenAI embedding 사용시 주의
 
-        # AzureOpenAI Service 연결
-        # 문서 분할
-        docs = []
-        for key, value in file_content.items():
-            # print('key : ' , key , '\t value : ' , value)
-            # print(value['chunks'])
-            for page in value["chunks"]:
-                docs.append(Document(page_content=page, metadata={"source": value["file_name"]}))
-        print("Number of chunks:", len(docs))
-        # print('#####################################################')
-        # print('docs : ' , docs)
+            # Vector Store 생성
+            vector_store = FAISS.from_documents(docs, embeddings)
+            # if vector_store_name == 'Chroma':
+            # persist_directory = "db"
+            # 	vector_store = Chroma.from_documents(docs, embeddings)
+            # 	vector_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
 
-        # Embedding 모델 생성
-        # 아래소스에서 chunk_size=1 이 아닌 다른 값을 넣으면 다음 소스에서 에러가 난다.
-        embeddings = OpenAIEmbeddings(
-            model="text-embedding-ada-002", chunk_size=1, openai_api_key=self.azure_openai_key
-        )  # Azure OpenAI embedding 사용시 주의
+            # LangChain🦜 & Azure GPT🤖 연결
+            llm = AzureChatOpenAI(
+                deployment_name="chat",
+                openai_api_key=self.azure_openai_key,
+                openai_api_base=self.azure_openai_endpoint,
+                openai_api_version=self.azure_openai_api_version,
+                temperature=0.0,
+                max_tokens=1000,
+            )
 
-        # Vector Store 생성
-        vector_store = FAISS.from_documents(docs, embeddings)
-        # if vector_store_name == 'Chroma':
-        # persist_directory = "db"
-        # 	vector_store = Chroma.from_documents(docs, embeddings)
-        # 	vector_store = Chroma.from_documents(documents=docs, embedding=embeddings, persist_directory=persist_directory)
+            # https://python.langchain.com/en/latest/modules/chains/index_examples/qa_with_sources.html
+            qa = RetrievalQAWithSourcesChain.from_chain_type(
+                llm=llm,
+                # chain_type='stuff',
+                chain_type="map_reduce",
+                retriever=vector_store.as_retriever(),
+                return_source_documents=True,
+            )
 
-        # LangChain🦜 & Azure GPT🤖 연결
-        # llm = AzureChatOpenAI(deployment_name='gpt-35-turbo',  openai_api_key=AZURE_OPENAI_KEY, openai_api_base=AZURE_OPENAI_ENDPOINT, openai_api_version=AZURE_OPENAI_API_VERSION,
-        llm = AzureChatOpenAI(
-            deployment_name="chat",
-            openai_api_key=self.azure_openai_key,
-            openai_api_base=self.azure_openai_endpoint,
-            openai_api_version=self.azure_openai_api_version,
-            temperature=0.0,
-            max_tokens=1000,
-        )
+            result = qa({"question": question})
 
-        # https://python.langchain.com/en/latest/modules/chains/index_examples/qa_with_sources.html
-        qa = RetrievalQAWithSourcesChain.from_chain_type(
-            llm=llm,
-            # chain_type='stuff',
-            chain_type="map_reduce",
-            retriever=vector_store.as_retriever(),
-            return_source_documents=True,
-        )
+            print("질문 :", question)
+            print("답변 :", result["answer"])
+            print("📄 참고 자료 :", result["sources"].replace(",", "\n"))
 
-        print(qa)
-
-        result = qa({"question": question})
-        # 답변 글자수 카운트
-        # char_counts=0
-        # ls_str = list(map(str,result))
-        # for ls_str1 in ls_str:
-        #   char_counts = char_counts + len(ls_str1)
-
-        # print(char_counts)
-
-        print("질문 :", question)
-        print("답변 :", result["answer"])
-        print("📄 참고 자료 :", result["sources"].replace(",", "\n"))
-
-        return result["answer"]
+            return result["answer"]
