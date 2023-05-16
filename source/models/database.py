@@ -1,11 +1,6 @@
 from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
 
-# USERNAME = 'openaiAdmin'
-# PASSWORD = 'aprkwhsMysql123!'
-# HOST = 'mtc-openai-db-mysql.mysql.database.azure.com'
-# PORT = '3306'
-# DBNAME = 'openai'
 
 DB_URL = 'mysql://openaiAdmin:@.mysql.database.azure.com:3306/openai'
 class engineconn:
