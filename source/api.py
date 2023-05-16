@@ -16,6 +16,7 @@ from azure.core.exceptions import AzureError
 app = FastAPI()
 
 origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -57,6 +58,7 @@ async def unicorn_exception_handler(request: Request, exc: APIException):
 async def root():
     """Root"""
     return {"message": "Hello World"}
+
 
 
 @app.get("/containers", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
@@ -198,8 +200,6 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
     azure_openai_utils = AzureOpenAIUtils()
     return await azure_openai_utils.query_openai(chatbot_query.query, chatbot_query.messages)
 
-
-<<<<<<< HEAD
 @app.get("/chatbot/search", status_code=status.HTTP_200_OK, tags=["ChatGPT"])
 async def chatbot(query):
     """100대 명언 샘플로 나중에 지울 예정"""
@@ -335,9 +335,9 @@ async def selectChatReqHistory(request: Request):
         return JSONResponse(status_code=500, content={"code": 500, "error": str(exc)})
     finally:
         session.close()
-=======
+
 @app.get("/test", status_code=status.HTTP_200_OK, tags=["Test"])
 async def search():
     """test"""
     return test.test()
->>>>>>> 62ac70aba89544d0a90322d9048cdf4d371ab408
+
