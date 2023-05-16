@@ -199,8 +199,8 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
     return await azure_openai_utils.query_openai(chatbot_query.query, chatbot_query.messages)
 
 
-@app.get("/bus-test", status_code=status.HTTP_200_OK, tags=["Test"])
-async def search(query, index_name, vector_store="FAISS"):
+@app.get("/test", status_code=status.HTTP_200_OK, tags=["Test"])
+async def search():
     """test"""
     return {
         "users": [
