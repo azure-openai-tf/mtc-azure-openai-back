@@ -23,7 +23,6 @@ app.add_middleware(
     allow_headers=origins,
 )
 
-
 @app.middleware("http")
 async def errors_handling(request: Request, call_next):
     """Common Error Middleware"""
@@ -273,3 +272,30 @@ async def chatbot(query):
     ]
 
     return random.choice(lst)
+
+@app.get("/model/chatRequestHistory", status_code=status.HTTP_200_OK, tags=["DB"])
+async def selectChatReqHistory():
+    engine = engineconn()
+    session = engine.sessionmaker()
+
+    example = session.query(ChatRequestHistory).all()
+    session.close();
+
+    return example;
+
+@app.post("/model/chatRequestHistory", status_code=status.HTTP_200_OK, tags=["DB"])
+async def selectChatReqHistory(request: Request):
+    requestJson = await request.json()
+    engine = engineconn()
+    session = engine.sessionmaker()
+
+    try:
+        session.add(ChatRequestHistory(**requestJson))
+        session.commit()
+
+        return JSONResponse(status_code=200)
+    except Exception as exc:
+        print("error")
+        return JSONResponse(status_code=500, content={"code": 500, "error": str(exc)})
+    finally:
+        session.close()

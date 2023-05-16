@@ -1,0 +1,176 @@
+[2023-05-15 17:56:33,472.472] INFO [12384] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 17:56:33,472.472] INFO [12384] - NumExpr defaulting to 8 threads.
+[2023-05-15 17:56:33,858.858] INFO [12384] - Started server process [29856]
+[2023-05-15 17:56:33,858.858] INFO [12384] - Waiting for application startup.
+[2023-05-15 17:56:33,858.858] INFO [12384] - Application startup complete.
+[2023-05-15 17:56:33,859.859] INFO [12384] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 17:56:57,216.216] INFO [12384] - 127.0.0.1:56982 - "GET /docs HTTP/1.1" 200
+[2023-05-15 17:56:57,778.778] INFO [12384] - 127.0.0.1:56982 - "GET /openapi.json HTTP/1.1" 200
+[2023-05-15 18:52:04,225.225] INFO [12384] - Shutting down
+[2023-05-15 18:52:04,334.334] INFO [12384] - Waiting for application shutdown.
+[2023-05-15 18:52:04,334.334] INFO [12384] - Application shutdown complete.
+[2023-05-15 18:52:04,334.334] INFO [12384] - Finished server process [29856]
+[2023-05-15 18:52:10,674.674] INFO [30800] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 18:52:10,674.674] INFO [30800] - NumExpr defaulting to 8 threads.
+[2023-05-15 18:52:38,717.717] INFO [30304] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 18:52:38,719.719] INFO [30304] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:00:17,560.560] INFO [23312] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:00:17,561.561] INFO [23312] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:00:36,776.776] INFO [32288] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:00:36,777.777] INFO [32288] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:02:45,459.459] INFO [23080] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:02:45,460.460] INFO [23080] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:03:35,526.526] INFO [26276] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:03:35,527.527] INFO [26276] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:03:35,815.815] INFO [26276] - Started server process [18380]
+[2023-05-15 19:03:35,816.816] INFO [26276] - Waiting for application startup.
+[2023-05-15 19:03:35,817.817] INFO [26276] - Application startup complete.
+[2023-05-15 19:03:35,817.817] INFO [26276] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:03:56,160.160] INFO [26276] - 127.0.0.1:58886 - "GET /docs HTTP/1.1" 200
+[2023-05-15 19:03:56,364.364] INFO [26276] - 127.0.0.1:58886 - "GET /openapi.json HTTP/1.1" 200
+[2023-05-15 19:04:21,380.380] INFO [26276] - 127.0.0.1:58887 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:04:21,498.498] INFO [26276] - 127.0.0.1:58887 - "GET /favicon.ico HTTP/1.1" 404
+[2023-05-15 19:06:04,532.532] INFO [26276] - Shutting down
+[2023-05-15 19:06:04,639.639] INFO [26276] - Waiting for application shutdown.
+[2023-05-15 19:06:04,640.640] INFO [26276] - Application shutdown complete.
+[2023-05-15 19:06:04,640.640] INFO [26276] - Finished server process [18380]
+[2023-05-15 19:06:08,050.050] INFO [1908] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:06:08,051.051] INFO [1908] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:06:08,334.334] INFO [1908] - Started server process [12272]
+[2023-05-15 19:06:08,335.335] INFO [1908] - Waiting for application startup.
+[2023-05-15 19:06:08,335.335] INFO [1908] - Application startup complete.
+[2023-05-15 19:06:08,336.336] INFO [1908] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:06:16,056.056] INFO [1908] - 127.0.0.1:59018 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:06:46,835.835] INFO [1908] - Shutting down
+[2023-05-15 19:06:46,943.943] INFO [1908] - Waiting for application shutdown.
+[2023-05-15 19:06:46,944.944] INFO [1908] - Application shutdown complete.
+[2023-05-15 19:06:46,944.944] INFO [1908] - Finished server process [12272]
+[2023-05-15 19:06:50,443.443] INFO [23168] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:06:50,444.444] INFO [23168] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:06:50,770.770] INFO [23168] - Started server process [16832]
+[2023-05-15 19:06:50,771.771] INFO [23168] - Waiting for application startup.
+[2023-05-15 19:06:50,771.771] INFO [23168] - Application startup complete.
+[2023-05-15 19:06:50,772.772] INFO [23168] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:06:56,686.686] INFO [23168] - 127.0.0.1:59062 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:11:40,121.121] INFO [23168] - Shutting down
+[2023-05-15 19:11:40,228.228] INFO [23168] - Waiting for application shutdown.
+[2023-05-15 19:11:40,228.228] INFO [23168] - Application shutdown complete.
+[2023-05-15 19:11:40,229.229] INFO [23168] - Finished server process [16832]
+[2023-05-15 19:11:46,555.555] INFO [30824] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:11:46,555.555] INFO [30824] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:11:46,983.983] INFO [30824] - Started server process [9756]
+[2023-05-15 19:11:46,983.983] INFO [30824] - Waiting for application startup.
+[2023-05-15 19:11:46,984.984] INFO [30824] - Application startup complete.
+[2023-05-15 19:11:46,984.984] INFO [30824] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:11:52,324.324] INFO [30824] - 127.0.0.1:59301 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:12:07,244.244] INFO [30824] - Shutting down
+[2023-05-15 19:12:07,353.353] INFO [30824] - Waiting for application shutdown.
+[2023-05-15 19:12:07,353.353] INFO [30824] - Application shutdown complete.
+[2023-05-15 19:12:07,355.355] INFO [30824] - Finished server process [9756]
+[2023-05-15 19:12:10,507.507] INFO [12556] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:12:10,507.507] INFO [12556] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:12:10,798.798] INFO [12556] - Started server process [32372]
+[2023-05-15 19:12:10,798.798] INFO [12556] - Waiting for application startup.
+[2023-05-15 19:12:10,799.799] INFO [12556] - Application startup complete.
+[2023-05-15 19:12:10,799.799] INFO [12556] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:12:17,943.943] INFO [12556] - 127.0.0.1:59338 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:13:14,251.251] INFO [12556] - Shutting down
+[2023-05-15 19:13:14,361.361] INFO [12556] - Waiting for application shutdown.
+[2023-05-15 19:13:14,362.362] INFO [12556] - Application shutdown complete.
+[2023-05-15 19:13:14,362.362] INFO [12556] - Finished server process [32372]
+[2023-05-15 19:13:17,647.647] INFO [31616] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:13:17,648.648] INFO [31616] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:13:17,940.940] INFO [31616] - Started server process [30492]
+[2023-05-15 19:13:17,940.940] INFO [31616] - Waiting for application startup.
+[2023-05-15 19:13:17,941.941] INFO [31616] - Application startup complete.
+[2023-05-15 19:13:17,942.942] INFO [31616] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:13:18,793.793] INFO [31616] - 127.0.0.1:59451 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:13:23,517.517] INFO [31616] - 127.0.0.1:59451 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:13:39,513.513] INFO [31616] - Shutting down
+[2023-05-15 19:13:39,622.622] INFO [31616] - Waiting for application shutdown.
+[2023-05-15 19:13:39,623.623] INFO [31616] - Application shutdown complete.
+[2023-05-15 19:13:39,624.624] INFO [31616] - Finished server process [30492]
+[2023-05-15 19:13:42,975.975] INFO [28624] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:13:42,975.975] INFO [28624] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:13:43,255.255] INFO [28624] - Started server process [13744]
+[2023-05-15 19:13:43,255.255] INFO [28624] - Waiting for application startup.
+[2023-05-15 19:13:43,256.256] INFO [28624] - Application startup complete.
+[2023-05-15 19:13:43,257.257] INFO [28624] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:13:45,036.036] INFO [28624] - 127.0.0.1:59500 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:13:57,559.559] INFO [28624] - Shutting down
+[2023-05-15 19:13:57,666.666] INFO [28624] - Finished server process [13744]
+[2023-05-15 19:13:57,695.695] ERROR [28624] - Traceback (most recent call last):
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\routing.py", line 686, in lifespan
+    await receive()
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\site-packages\uvicorn\middleware\message_logger.py", line 62, in inner_receive
+    message = await receive()
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 139, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[2023-05-15 19:14:03,095.095] INFO [21520] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:14:03,096.096] INFO [21520] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:14:03,369.369] INFO [21520] - Started server process [19924]
+[2023-05-15 19:14:03,369.369] INFO [21520] - Waiting for application startup.
+[2023-05-15 19:14:03,370.370] INFO [21520] - Application startup complete.
+[2023-05-15 19:14:03,370.370] INFO [21520] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:14:06,058.058] INFO [21520] - 127.0.0.1:59540 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:15:52,867.867] INFO [21520] - Shutting down
+[2023-05-15 19:15:52,976.976] INFO [21520] - Finished server process [19924]
+[2023-05-15 19:15:52,980.980] ERROR [21520] - Traceback (most recent call last):
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\routing.py", line 686, in lifespan
+    await receive()
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\site-packages\uvicorn\middleware\message_logger.py", line 62, in inner_receive
+    message = await receive()
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 139, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[2023-05-15 19:15:56,719.719] INFO [30252] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:15:56,719.719] INFO [30252] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:15:57,017.017] INFO [30252] - Started server process [30440]
+[2023-05-15 19:15:57,017.017] INFO [30252] - Waiting for application startup.
+[2023-05-15 19:15:57,017.017] INFO [30252] - Application startup complete.
+[2023-05-15 19:15:57,018.018] INFO [30252] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:16:25,896.896] INFO [30252] - 127.0.0.1:59695 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:18:09,538.538] INFO [30252] - Shutting down
+[2023-05-15 19:18:09,647.647] INFO [30252] - Waiting for application shutdown.
+[2023-05-15 19:18:09,647.647] INFO [30252] - Application shutdown complete.
+[2023-05-15 19:18:09,648.648] INFO [30252] - Finished server process [30440]
+[2023-05-15 19:18:13,087.087] INFO [11780] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:18:13,087.087] INFO [11780] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:18:13,383.383] INFO [11780] - Started server process [22968]
+[2023-05-15 19:18:13,384.384] INFO [11780] - Waiting for application startup.
+[2023-05-15 19:18:13,384.384] INFO [11780] - Application startup complete.
+[2023-05-15 19:18:13,385.385] INFO [11780] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:18:17,561.561] INFO [11780] - 127.0.0.1:59747 - "GET /model/chatReqHistory HTTP/1.1" 500
+[2023-05-15 19:19:17,754.754] INFO [11780] - Shutting down
+[2023-05-15 19:19:17,862.862] INFO [11780] - Finished server process [22968]
+[2023-05-15 19:19:17,867.867] ERROR [11780] - Traceback (most recent call last):
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\site-packages\starlette\routing.py", line 686, in lifespan
+    await receive()
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\site-packages\uvicorn\middleware\message_logger.py", line 62, in inner_receive
+    message = await receive()
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\site-packages\uvicorn\lifespan\on.py", line 139, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\MZC01-DERIK\AppData\Local\Programs\Python\Python311\Lib\asyncio\queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[2023-05-15 19:19:21,048.048] INFO [26236] - Note: NumExpr detected 12 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[2023-05-15 19:19:21,048.048] INFO [26236] - NumExpr defaulting to 8 threads.
+[2023-05-15 19:19:21,327.327] INFO [26236] - Started server process [16608]
+[2023-05-15 19:19:21,327.327] INFO [26236] - Waiting for application startup.
+[2023-05-15 19:19:21,328.328] INFO [26236] - Application startup complete.
+[2023-05-15 19:19:21,329.329] INFO [26236] - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[2023-05-15 19:19:25,487.487] INFO [26236] - 127.0.0.1:59795 - "GET /model/chatReqHistory HTTP/1.1" 200

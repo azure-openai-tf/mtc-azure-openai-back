@@ -22,6 +22,10 @@ from langchain.embeddings import OpenAIEmbeddings
 
 from dotenv import load_dotenv
 
+# Log DB Insert
+from models.chatRequestHistory import ChatRequestHistory
+from models.database import engineconn
+
 load_dotenv()
 
 
@@ -147,6 +151,13 @@ class AzureOpenAIUtils:
             "answers": "extractive|count-3",
             "captions": "extractive|highlight-false",
         }
+
+        try:
+            engine = engineconn()
+            session = engine.sessionmaker()
+            example = session.query(ChatRequestHistory).all()
+        finally:
+            session.close()
 
         resp = requests.get(url, params=params, headers=self.headers)
         search_results = resp.json()  # 결과값
