@@ -8,8 +8,14 @@ from api import app
 client = TestClient(app)
 
 
-def test_blobs_list():
-    response = client.get("/blobs")
-    print(response)
+def test_read_main():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.json() == {"message": "Hello World"}
+
+
+def test_container_list():
+    response = client.get("/containers")
+    print(response.json())
     assert response.status_code == 200
     # assert type(response)

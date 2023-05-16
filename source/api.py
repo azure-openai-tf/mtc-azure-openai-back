@@ -199,6 +199,27 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
     return await azure_openai_utils.query_openai(chatbot_query.query, chatbot_query.messages)
 
 
+@app.get("/bus-test", status_code=status.HTTP_200_OK, tags=["Test"])
+async def search(query, index_name, vector_store="FAISS"):
+    """test"""
+    return {
+        "users": [
+            {
+                "userId": 1,
+                "firstName": "AAAAA",
+                "lastName": "as23",
+                "phoneNumber": "123456",
+                "emailAddress": "AAAAA@test.com",
+                "homepage": "https://amogg.tistory.com/1",
+            },
+            {"userId": 2, "firstName": "BBBB", "lastName": "h5jdd", "phoneNumber": "123456", "homepage": "https://amogg.tistory.com/2"},
+            {"userId": 3, "firstName": "CCCCC", "lastName": "2dhbs", "phoneNumber": "33333333", "homepage": "https://amogg.tistory.com/3"},
+            {"userId": 4, "firstName": "DDDDD", "lastName": "bacasd", "phoneNumber": "222222222", "homepage": "https://amogg.tistory.com/4"},
+            {"userId": 5, "firstName": "EEEEE", "lastName": "asdfasdf", "phoneNumber": "111111111", "homepage": "https://amogg.tistory.com/5"},
+        ]
+    }
+
+
 @app.get("/chatbot/search", status_code=status.HTTP_200_OK, tags=["ChatGPT"])
 async def chatbot(query):
     """100대 명언 샘플로 나중에 지울 예정"""

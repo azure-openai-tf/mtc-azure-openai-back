@@ -33,10 +33,12 @@ class AzureBlobStorageUtils:
             list : Container Names
         """
         container_list = []
-        async for container in self.blob_service_client.list_containers(include_metadata=True):
-            container_list.append(container.name)
-
-        return container_list
+        try:
+            async for container in self.blob_service_client.list_containers(include_metadata=True):
+                container_list.append(container.name)
+                return container_list
+        finally:
+            await self.blob_service_client.close()
 
     async def list_blobs(self, container_name):
         """List Blob
@@ -55,7 +57,7 @@ class AzureBlobStorageUtils:
         except ResourceNotFoundError as exp:
             raise APIException(404, "컨테이너를 찾을 수 없습니다.", str(exp))
         finally:
-            await self.close_container_client(container_client)
+            await self.close_client(container_client)
 
     async def create_container(self, container_name: str):
         """Create Contrainer"""
@@ -71,7 +73,7 @@ class AzureBlobStorageUtils:
         except HttpResponseError as exp:
             raise APIException(400, "컨테이너명이 형식에 맞지 않습니다.", str(exp))
         finally:
-            await self.close_container_client(container_client)
+            await self.close_client(container_client)
 
     async def delete_container(self, container_name: str):
         """Delete Contrainer"""
@@ -84,7 +86,7 @@ class AzureBlobStorageUtils:
         except HttpResponseError as exc:
             raise APIException(404, "컨테이너명이 형식에 맞지 않습니다.", str(exc))
         finally:
-            await self.close_container_client(container_client)
+            await self.close_client(container_client)
 
     async def upload_to_container(self, container_name: str, file: UploadFile, file_name: str, content_type: str):
         """Upload To Azure
@@ -107,7 +109,7 @@ class AzureBlobStorageUtils:
             except Exception as ex:
                 raise APIException(500, "파일 업로드에 실패하였습니다.", str(ex))
             finally:
-                await self.close_container_client(container_client)
+                await self.close_client(container_client)
 
     async def delete_blobs(self, container_name: str, file_names: list[str]):
         """Delete Blobs
@@ -128,10 +130,13 @@ class AzureBlobStorageUtils:
         try:
             await container_client.delete_blobs(*file_names)
         finally:
-            await self.close_container_client(container_client)
+            await self.close_client(container_client)
 
-    async def close_container_client(self, container_client: None | ContainerClient):
+    async def close_client(self, container_client: None | ContainerClient):
         """close_container_client"""
         if container_client:
-            print("Connection Close")
+            print("Container Client Close")
             await container_client.close()
+        if self.blob_service_client:
+            print("Blob Service Client Close")
+            await self.blob_service_client.close()
