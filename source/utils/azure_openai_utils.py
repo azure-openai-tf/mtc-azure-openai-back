@@ -130,7 +130,7 @@ class AzureOpenAIUtils:
         """Excute OpenAI"""
         # 질문 설정
         # QUESTION = ' Azure 관리자 자격증중에 어떤 자격증이 있는지 아주 간단히 설명해줘' --> 이 메시지를 넣으면 에러가 난다..
-        question = " Azure 관리자가 되고 싶은데 어떻게 해야 하는지 자격증도 설명해주고 알려줘"
+        # question = " Azure 관리자가 되고 싶은데 어떻게 해야 하는지 자격증도 설명해주고 알려줘"
 
         # Azure Cognitive Search REST API 호출(get)
         url = self.azure_search_endpoint + "/indexes/" + index_name + "/docs"
