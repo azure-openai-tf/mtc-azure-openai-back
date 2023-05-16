@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 # PORT = '3306'
 # DBNAME = 'openai'
 
-DB_URL = 'mysql://openaiAdmin:aprkwhsMysql123!@mtc-openai-db-mysql.mysql.database.azure.com:3306/openai'
+DB_URL = 'mysql://openaiAdmin:@.mysql.database.azure.com:3306/openai'
 class engineconn:
 
     def __init__(self):
