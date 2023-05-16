@@ -180,6 +180,9 @@ class AzureOpenAIUtils:
                 for page in value["chunks"]:
                     docs.append(Document(page_content=page, metadata={"source": value["file_name"]}))
 
+            if len(docs) == 0:
+                return "자료를 찾지 못하였습니다."
+
             # Embedding 모델 생성
             # 아래소스에서 chunk_size=1 이 아닌 다른 값을 넣으면 다음 소스에서 에러가 난다.
             embeddings = OpenAIEmbeddings(
