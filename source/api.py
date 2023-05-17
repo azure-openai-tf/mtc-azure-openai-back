@@ -4,6 +4,7 @@
 """
 import random
 import test
+import traceback
 from fastapi import FastAPI, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from custom_exception import APIException
@@ -12,6 +13,8 @@ from utils.azure_openai_utils import AzureOpenAIUtils
 from fastapi.middleware.cors import CORSMiddleware
 from models.models import ChatbotQuery, CreateContainerBody, DeleteBlobsBody
 from azure.core.exceptions import AzureError
+from database import MysqlEngine
+from models.chat_request_history import ChatRequestHistory
 
 app = FastAPI()
 
@@ -24,6 +27,7 @@ app.add_middleware(
     allow_methods=origins,
     allow_headers=origins,
 )
+
 
 @app.middleware("http")
 async def errors_handling(request: Request, call_next):
@@ -47,7 +51,7 @@ async def unicorn_exception_handler(request: Request, exc: APIException):
     Returns:
         json: {"message": "message", "code": 500, "error": "error Message"}
     """
-    # print(request)
+    traceback.print_exception(etype, value, tb)
     return JSONResponse(
         status_code=exc.code,
         content={"message": exc.message, "code": exc.code, "error": exc.error},
@@ -58,7 +62,6 @@ async def unicorn_exception_handler(request: Request, exc: APIException):
 async def root():
     """Root"""
     return {"message": "Hello World"}
-
 
 
 @app.get("/containers", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
@@ -200,6 +203,7 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
     azure_openai_utils = AzureOpenAIUtils()
     return await azure_openai_utils.query_openai(chatbot_query.query, chatbot_query.messages)
 
+
 @app.get("/chatbot/search", status_code=status.HTTP_200_OK, tags=["ChatGPT"])
 async def chatbot(query):
     """100대 명언 샘플로 나중에 지울 예정"""
@@ -309,15 +313,17 @@ async def chatbot(query):
 
     return random.choice(lst)
 
+
 @app.get("/model/chatRequestHistory", status_code=status.HTTP_200_OK, tags=["DB"])
 async def selectChatReqHistory():
     engine = engineconn()
     session = engine.sessionmaker()
 
     example = session.query(ChatRequestHistory).all()
-    session.close();
+    session.close()
 
-    return example;
+    return example
+
 
 @app.post("/model/chatRequestHistory", status_code=status.HTTP_200_OK, tags=["DB"])
 async def selectChatReqHistory(request: Request):
@@ -336,8 +342,8 @@ async def selectChatReqHistory(request: Request):
     finally:
         session.close()
 
+
 @app.get("/test", status_code=status.HTTP_200_OK, tags=["Test"])
 async def search():
     """test"""
     return test.test()
-
