@@ -51,7 +51,7 @@ async def unicorn_exception_handler(request: Request, exc: APIException):
     Returns:
         json: {"message": "message", "code": 500, "error": "error Message"}
     """
-    traceback.print_exception(etype, value, tb)
+    traceback.print_exc(exc)
     return JSONResponse(
         status_code=exc.code,
         content={"message": exc.message, "code": exc.code, "error": exc.error},

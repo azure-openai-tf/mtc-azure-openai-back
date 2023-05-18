@@ -10,7 +10,7 @@ from pytz import timezone
 class CommonUtils:
     @classmethod
     def get_running_time(cls, start: time, end: time) -> time:
-        return start - end
+        return end - start
 
     @classmethod
     def get_kst_now(cls) -> str:
