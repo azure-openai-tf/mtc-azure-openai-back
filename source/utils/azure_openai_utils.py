@@ -137,7 +137,7 @@ class AzureOpenAIUtils:
         # 로그 저장
         start = time.time()
         chat_request_history = ChatRequestHistory(
-            selected_index=index_name, query="test", created_user="unknown", status=ChatRequestHistory.Statues.success
+            selected_index=index_name, query="test", created_user="unknown", status=ChatRequestHistory.Statues.running
         )
         MysqlEngine.session.add(chat_request_history)
         MysqlEngine.session.commit()
