@@ -26,7 +26,7 @@ from dotenv import load_dotenv
 
 # Log DB Insert
 from database import MysqlEngine
-from models.chat_request_history import ChatRequestHistory
+from domains.models import ChatRequestHistory
 
 load_dotenv()
 
@@ -131,14 +131,12 @@ class AzureOpenAIUtils:
         result = {"messages": messages, "answer": response["choices"][0]["message"]["content"]}
 
         return result
-    
+
     async def execute_openai(self, question, index_name, vector_store_name):
         """Excute OpenAI"""
         # 로그 저장
         start = time.time()
-        chat_request_history = ChatRequestHistory(
-            selected_index=index_name, query="test", user_id=22, status=ChatRequestHistory.Statues.running
-        )
+        chat_request_history = ChatRequestHistory(selected_index=index_name, query="test", user_id=22, status=ChatRequestHistory.Statues.running)
         MysqlEngine.session.add(chat_request_history)
         MysqlEngine.session.commit()
 
@@ -157,7 +155,7 @@ class AzureOpenAIUtils:
             "answers": "extractive|count-3",
             "captions": "extractive|highlight-false",
         }
-        
+
         resp = requests.get(url, params=params, headers=self.headers)
         search_results = resp.json()  # 결과값
 

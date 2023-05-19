@@ -11,10 +11,10 @@ from custom_exception import APIException
 from utils.azure_blob_storage_utils import AzureBlobStorageUtils
 from utils.azure_openai_utils import AzureOpenAIUtils
 from fastapi.middleware.cors import CORSMiddleware
-from models.bodies import ChatbotQuery, CreateContainerBody, DeleteBlobsBody
+from domains.bodies import ChatbotQuery, CreateContainerBody, DeleteBlobsBody
 from azure.core.exceptions import AzureError
 from database import MysqlEngine
-from models.chat_request_history import ChatRequestHistory
+from domains import crud
 from sqlalchemy.orm import lazyload
 from sqlalchemy import asc, desc
 
@@ -208,11 +208,7 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
 
 @app.get("/chat-request-histories", status_code=status.HTTP_200_OK, tags=["Chat Request History"])
 async def get_chat_request_histories():
-    return MysqlEngine.session.query(ChatRequestHistory).order_by(desc(ChatRequestHistory.id)).options('user').all()
-
-@app.get("/chat-request-histories", status_code=status.HTTP_200_OK, tags=["Chat Request History"])
-async def get_chat_request_histories():
-    return MysqlEngine.session.query(ChatRequestHistory).order_by(desc(ChatRequestHistory.id)).options(lazyload(ChatRequestHistory.user)).all()
+    return crud.get_chat_request_histories()
 
 
 @app.get("/test", status_code=status.HTTP_200_OK, tags=["Test"])
