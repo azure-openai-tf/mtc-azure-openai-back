@@ -247,4 +247,4 @@ class AzureOpenAIUtils:
             chat_request_history.reference_file = result["sources"].replace(",", "\n")
             MysqlEngine.session.commit()
 
-            return result["answer"]
+            return {"question": question, "answer": answer, "reference_file": result["sources"].replace(",", "\n")}
