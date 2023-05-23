@@ -88,7 +88,7 @@ persistent=yes
 
 # Minimum Python version to use for version dependent checks. Will default to
 # the version used to run pylint.
-py-version=3.8
+py-version=3.10
 
 # Discover python modules and packages in the file system subtree.
 recursive=no
@@ -337,7 +337,7 @@ indent-after-paren=4
 indent-string='    '
 
 # Maximum number of characters on a single line.
-max-line-length=190
+max-line-length=180
 
 # Maximum number of lines in a module.
 max-module-lines=1000
@@ -434,8 +434,7 @@ disable=raw-checker-failed,
         no-name-in-module,
         wrong-import-order,
         dangerous-default-value,
-        ungrouped-imports,
-        
+
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
@@ -635,7 +634,3 @@ init-import=no
 # List of qualified module names which can have objects that can redefine
 # builtins.
 redefining-builtins-modules=six.moves,past.builtins,future.builtins,builtins,io
-
-[MASTER]
-init-hook="from pylint.config import find_pylintrc;
-import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))"
