@@ -237,8 +237,9 @@ class AzureOpenAIUtils:
             print("질문 :", question)
             print("답변 :", result["answer"])
             print("📄 참고 자료 :", result["sources"].replace(",", "\n"))
-            return_dict['answer'] = result['answer']
-            return_dict['reference_file'] = result["sources"].replace(",", "\n")
+            return_dict['answer'] = result['answer'].replace('\n', '')
+            return_dict['reference_file'] = result["sources"]
+            # return_dict['reference_file_link'] = result["sources"]
 
             chat_request_history.answer = result["answer"]
             chat_request_history.status = ChatRequestHistory.Statues.success

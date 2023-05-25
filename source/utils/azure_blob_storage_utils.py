@@ -34,9 +34,9 @@ class AzureBlobStorageUtils:
         """
         container_list = []
         try:
-            async for container in self.blob_service_client.list_containers(include_metadata=True):
+            async for container in self.blob_service_client.list_containers():
                 container_list.append(container.name)
-                return container_list
+            return container_list
         finally:
             await self.blob_service_client.close()
 

@@ -2,9 +2,7 @@
 @created_by ayaan
 @created_at 2023.05.08
 """
-import random
 import test
-import traceback
 from fastapi import FastAPI, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from custom_exception import APIException
@@ -13,10 +11,7 @@ from utils.azure_openai_utils import AzureOpenAIUtils
 from fastapi.middleware.cors import CORSMiddleware
 from domains.bodies import ChatbotQuery, CreateContainerBody, DeleteBlobsBody
 from azure.core.exceptions import AzureError
-from database import MysqlEngine
 from domains import crud
-from sqlalchemy.orm import lazyload
-from sqlalchemy import asc, desc
 
 app = FastAPI()
 
@@ -53,7 +48,6 @@ async def unicorn_exception_handler(request: Request, exc: APIException):
     Returns:
         json: {"message": "message", "code": 500, "error": "error Message"}
     """
-    traceback.print_exc(exc)
     return JSONResponse(
         status_code=exc.code,
         content={"message": exc.message, "code": exc.code, "error": exc.error},
@@ -68,7 +62,7 @@ async def root():
 
 @app.get("/containers", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
 async def containers_list():
-    """Get container Names List
+    """컨테이너 이름 목록 가져오기
 
     Returns:
         list: container Names list
@@ -80,13 +74,13 @@ async def containers_list():
 
 @app.post("/containers", status_code=status.HTTP_201_CREATED, tags=["Azure Blob Storage"])
 async def create_container(create_container_body: CreateContainerBody):
-    """Create Container
+    """컨테이너 생성
 
     Args:
         name (CreateContainerBody): 이름
 
     Returns:
-        _type_: _description_
+        dict: Blob 정보
     """
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
@@ -95,7 +89,11 @@ async def create_container(create_container_body: CreateContainerBody):
 
 @app.delete("/containers/{container}", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
 async def delete_container(container):
-    """Create Container"""
+    """컨테이너 삭제
+
+    Args:
+        container (str): 컨테이너 이름
+    """
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
     return await azure_blob_storage_utils.delete_container(container)
@@ -103,11 +101,11 @@ async def delete_container(container):
 
 @app.post("/containers/{container}/blobs", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
 async def upload_blobs(container, file: UploadFile):
-    """Upload Blob
+    """컨테이너에 Blob파일 업로드
 
     Args:
-        file (UploadFile): Upload File
-
+        container (str): 컨테이너 이름
+        file (UploadFile): 파일
     """
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
@@ -116,7 +114,13 @@ async def upload_blobs(container, file: UploadFile):
 
 @app.delete("/containers/{container}/blobs", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Blob Storage"])
 async def delete_blobs(container, delete_blobs_body: DeleteBlobsBody):
-    """Delete Blobs"""
+    """컨테이너에 Blob파일 다중 삭제
+
+    Args:
+        container (str): 컨테이너 이름
+        file_names (list): ['test.txt', 'test2'.txt] 파일명들
+
+    """
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
     return await azure_blob_storage_utils.delete_blobs(container, delete_blobs_body.file_names)
@@ -124,10 +128,13 @@ async def delete_blobs(container, delete_blobs_body: DeleteBlobsBody):
 
 @app.get("/containers/{container}/blobs", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
 async def blobs_list(container):
-    """Get Blobs List
+    """컨테이너에 파일 목록 조회
+
+    Args:
+        container (str): 컨테이너 이름
 
     Returns:
-        list: blob name list
+        list: 컨테이너 파일 목록
     """
     azure_blob_storage_utils = AzureBlobStorageUtils()
 
@@ -136,25 +143,32 @@ async def blobs_list(container):
 
 @app.get("/indexes", status_code=status.HTTP_200_OK, tags=["Azure Cognitive Search"])
 async def get_index_list():
-    """Get Cognitive Search Index List"""
+    """인덱스 목록 조회
+
+    Returns:
+        list: 인덱스 목록 [{"index_name": index.name}]
+    """
     azure_openai_utils = AzureOpenAIUtils()
     return await azure_openai_utils.get_index_list()
 
 
 @app.get("/indexers", status_code=status.HTTP_200_OK, tags=["Azure Cognitive Search"])
 async def get_indexer_list():
-    """Get Cognitive Search Indexer List"""
+    """Cognitive Search Indexer 목록 조회
+
+    Returns:
+        list: 인덱서 목록 [{"indexer_name": indexer.name, "target_index_name": indexer.target_index_name}]
+    """
     azure_openai_utils = AzureOpenAIUtils()
     return await azure_openai_utils.get_indexer_list()
 
 
 @app.get("/indexers/{indexer}/status", status_code=status.HTTP_200_OK, tags=["Azure Cognitive Search"])
 async def get_indexer_status(indexer):
-    """Get Cognitive Search Indexer Status
+    """Cognitive Search Indexer 상태 조회
 
     Args:
         indexer (str): Indexer Name
-
     """
     azure_openai_utils = AzureOpenAIUtils()
     return await azure_openai_utils.cognitive_search_get_indexer_status(indexer)
@@ -162,11 +176,10 @@ async def get_indexer_status(indexer):
 
 @app.post("/indexers/{indexer}/run", status_code=status.HTTP_204_NO_CONTENT, tags=["Azure Cognitive Search"])
 async def run_indexer(indexer):
-    """Cognitive Search Indexer Run
+    """Cognitive Search Indexer 실행
 
     Args:
         indexer (str): Indexer Name
-
     """
     azure_openai_utils = AzureOpenAIUtils()
     await azure_openai_utils.cognitive_search_run_indexer(indexer)
@@ -179,7 +192,7 @@ async def search(query, index_name, vector_store="FAISS"):
     Args:
         indexer (str): Index Name
         query (str): 질문
-        vector_store(str): 벡터 DB Store
+        vector_store(str): 벡터 DB Store 이름 (FAISS/chroma)
 
     """
     azure_openai_utils = AzureOpenAIUtils()
@@ -208,10 +221,5 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
 
 @app.get("/chat-request-histories", status_code=status.HTTP_200_OK, tags=["Chat Request History"])
 async def get_chat_request_histories():
+    """채팅 목록 조회"""
     return crud.get_chat_request_histories()
-
-
-@app.get("/test", status_code=status.HTTP_200_OK, tags=["Test"])
-async def search():
-    """test"""
-    return test.test()
