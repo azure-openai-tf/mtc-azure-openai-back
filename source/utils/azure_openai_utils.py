@@ -40,6 +40,8 @@ class AzureOpenAIUtils:
     azure_openai_key = os.environ.get("OPEN_AI_KEY")
     azure_openai_endpoint = os.environ.get("OPEN_AI_ENDPOINT")
     azure_openai_api_version = "2023-03-15-preview"
+    pre_prompt = """
+    """
 
     def __init__(self):
         self.headers = {"Content-Type": "application/json", "api-key": self.azure_search_key}
@@ -96,7 +98,6 @@ class AzureOpenAIUtils:
         await search_indexer_client.run_indexer(index_name)
 
         await search_indexer_client.close()
-        print("index 업데이트 완료")
 
     async def cognitive_search_get_indexer_status(self, indexer_name):
         """cognitive_search_get_indexer_status"""
@@ -134,7 +135,7 @@ class AzureOpenAIUtils:
 
     async def execute_openai(self, question, index_name, vector_store_name):
         """Excute OpenAI"""
-        return_dict = {"question": question, "answer": '자료를 찾지 못하였습니다.', "reference_file": ""}
+        return_dict = {"question": question, "answer": '자료를 찾지 못하였습니다.', "reference_file": []}
         # 로그 저장
         start = time.time()
         chat_request_history = ChatRequestHistory(selected_index=index_name, query="test", user_id=22, status=ChatRequestHistory.Statues.running)
@@ -178,7 +179,7 @@ class AzureOpenAIUtils:
         else:
             file_content = OrderedDict()
             for result in search_results["value"]:
-                if result["@search.rerankerScore"] > 0.04:  # Semantic Search 최대 점수 4점, 상위 40%
+                if result["@search.rerankerScore"] > 0.03:  # Semantic Search 최대 점수 4점
                     file_content[result["metadata_storage_path"]] = {
                         "chunks": result["pages"][:1],
                         "caption": result["@search.captions"][0]["text"],
@@ -232,13 +233,14 @@ class AzureOpenAIUtils:
                 return_source_documents=True,
             )
 
-            result = qa({"question": question})
+            prompt_prefix = 'Think in English and answer in Korean\n\n'
+            result = qa({"question":  prompt_prefix + question})
 
             print("질문 :", question)
             print("답변 :", result["answer"])
             print("📄 참고 자료 :", result["sources"].replace(",", "\n"))
             return_dict['answer'] = result['answer'].replace('\n', '')
-            return_dict['reference_file'] = result["sources"]
+            return_dict['reference_file'] = result["sources"].split(',')
             # return_dict['reference_file_link'] = result["sources"]
 
             chat_request_history.answer = result["answer"]

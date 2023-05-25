@@ -15,7 +15,7 @@ class MysqlEngine:
     mysql_db_name = os.getenv("MYSQL_DB_NAME")
     database_url = f"mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}/{mysql_db_name}"
 
-    engine = create_engine(database_url, echo=True)
+    engine = create_engine(database_url, echo=False)
     # session = sessionmaker(autocommit=True, autoflush=False, bind=engine)
     session = scoped_session(sessionmaker(bind=engine))
 
