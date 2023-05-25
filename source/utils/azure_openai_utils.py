@@ -134,6 +134,7 @@ class AzureOpenAIUtils:
 
     async def execute_openai(self, question, index_name, vector_store_name):
         """Excute OpenAI"""
+        return_dict = {"question": question, "answer": '자료를 찾지 못하였습니다.', "reference_file": ""}
         # 로그 저장
         start = time.time()
         chat_request_history = ChatRequestHistory(selected_index=index_name, query="test", user_id=22, status=ChatRequestHistory.Statues.running)
@@ -160,8 +161,7 @@ class AzureOpenAIUtils:
         search_results = resp.json()  # 결과값
 
         if resp.status_code != 200:
-            answer = "자료를 찾지 못하였습니다."
-            chat_request_history.answer = answer
+            chat_request_history.answer = return_dict['answer']
             chat_request_history.status = ChatRequestHistory.Statues.fail
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
@@ -169,13 +169,12 @@ class AzureOpenAIUtils:
             raise APIException(resp.status_code, "Cognitive Search API 실패", error=resp.json())
 
         if search_results["@odata.count"] == 0:
-            answer = "자료를 찾지 못하였습니다."
-            chat_request_history.answer = answer
+            chat_request_history.answer = return_dict['answer']
             chat_request_history.status = ChatRequestHistory.Statues.success
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
             MysqlEngine.session.commit()
-            return answer
+            return return_dict
         else:
             file_content = OrderedDict()
             for result in search_results["value"]:
@@ -194,18 +193,17 @@ class AzureOpenAIUtils:
                     docs.append(Document(page_content=page, metadata={"source": value["file_name"]}))
 
             if len(docs) == 0:
-                answer = "자료를 찾지 못하였습니다."
-                chat_request_history.answer = answer
+                chat_request_history.answer = return_dict['answer']
                 chat_request_history.status = ChatRequestHistory.Statues.success
                 chat_request_history.response_at = CommonUtils.get_kst_now()
                 chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
                 MysqlEngine.session.commit()
-                return answer
+                return return_dict
 
             # Embedding 모델 생성
             # 아래소스에서 chunk_size=1 이 아닌 다른 값을 넣으면 다음 소스에서 에러가 난다.
             embeddings = OpenAIEmbeddings(
-                model="text-embedding-ada-002", chunk_size=1, openai_api_key=self.azure_openai_key
+                model="text-similarity-curie-001", chunk_size=1, openai_api_key=self.azure_openai_key
             )  # Azure OpenAI embedding 사용시 주의
 
             # Vector Store 생성
@@ -239,6 +237,8 @@ class AzureOpenAIUtils:
             print("질문 :", question)
             print("답변 :", result["answer"])
             print("📄 참고 자료 :", result["sources"].replace(",", "\n"))
+            return_dict['answer'] = result['answer']
+            return_dict['reference_file'] = result["sources"].replace(",", "\n")
 
             chat_request_history.answer = result["answer"]
             chat_request_history.status = ChatRequestHistory.Statues.success
@@ -247,4 +247,4 @@ class AzureOpenAIUtils:
             chat_request_history.reference_file = result["sources"].replace(",", "\n")
             MysqlEngine.session.commit()
 
-            return {"question": question, "answer": result["answer"], "reference_file": result["sources"].replace(",", "\n")}
+            return return_dict

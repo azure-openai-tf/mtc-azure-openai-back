@@ -38,8 +38,8 @@ async def errors_handling(request: Request, call_next):
         return await call_next(request)
     except AzureError as azure_exc:
         return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
-    # except Exception as exc:
-    #     return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
 
 
 @app.exception_handler(APIException)
