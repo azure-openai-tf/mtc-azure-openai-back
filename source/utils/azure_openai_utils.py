@@ -203,7 +203,7 @@ class AzureOpenAIUtils:
             # Embedding 모델 생성
             # 아래소스에서 chunk_size=1 이 아닌 다른 값을 넣으면 다음 소스에서 에러가 난다.
             embeddings = OpenAIEmbeddings(
-                model="text-similarity-curie-001", chunk_size=1, openai_api_key=self.azure_openai_key
+                model="text-embedding-ada-002", chunk_size=1, openai_api_key=self.azure_openai_key
             )  # Azure OpenAI embedding 사용시 주의
 
             # Vector Store 생성
