@@ -216,7 +216,7 @@ class AzureOpenAIUtils:
 
             # LangChain🦜 & Azure GPT🤖 연결
             llm = AzureChatOpenAI(
-                deployment_name="chat",
+                deployment_name="gpt-35-turbo",
                 openai_api_key=self.azure_openai_key,
                 openai_api_base=self.azure_openai_endpoint,
                 openai_api_version=self.azure_openai_api_version,
@@ -233,7 +233,7 @@ class AzureOpenAIUtils:
                 return_source_documents=True,
             )
 
-            prompt_prefix = 'Think in English and answer in Korean\n\n'
+            prompt_prefix = 'Think in English and answer in Korean  \n\n'
             result = qa({"question":  prompt_prefix + question})
 
             print("질문 :", question)
