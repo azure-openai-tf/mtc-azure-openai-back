@@ -138,7 +138,7 @@ class AzureOpenAIUtils:
         return_dict = {"question": question, "answer": '자료를 찾지 못하였습니다.', "reference_file": []}
         # 로그 저장
         start = time.time()
-        chat_request_history = ChatRequestHistory(selected_index=index_name, query="test", user_id=22, status=ChatRequestHistory.Statues.running)
+        chat_request_history = ChatRequestHistory(selected_index=index_name, query=question, user_id=22, status=ChatRequestHistory.Statues.running)
         session.add(chat_request_history)
         session.commit()
 
