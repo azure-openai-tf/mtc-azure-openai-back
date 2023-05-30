@@ -27,18 +27,6 @@ app.add_middleware(
 )
 
 @app.middleware("http")
-async def db_session_middleware(request: Request, call_next):
-    """Common Error Middleware"""
-    try:
-        request.state.session = MysqlEngine.session()
-        return await call_next(request)
-    except AzureError as azure_exc:
-        request.state.db.close()
-        return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
-    finally:
-        request.state.db.close()
-
-@app.middleware("http")
 async def errors_handling(request: Request, call_next):
     """Common Error Middleware"""
     try:
