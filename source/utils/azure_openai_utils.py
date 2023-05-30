@@ -133,14 +133,14 @@ class AzureOpenAIUtils:
 
         return result
 
-    async def execute_openai(self, question, index_name, vector_store_name):
+    async def execute_openai(self, session, question, index_name, vector_store_name):
         """Excute OpenAI"""
         return_dict = {"question": question, "answer": '자료를 찾지 못하였습니다.', "reference_file": []}
         # 로그 저장
         start = time.time()
         chat_request_history = ChatRequestHistory(selected_index=index_name, query="test", user_id=22, status=ChatRequestHistory.Statues.running)
-        MysqlEngine.session.add(chat_request_history)
-        MysqlEngine.session.commit()
+        session.add(chat_request_history)
+        session.commit()
 
         # Call Cognitive API
         url = self.azure_search_endpoint + "/indexes/" + index_name + "/docs"
@@ -166,7 +166,7 @@ class AzureOpenAIUtils:
             chat_request_history.status = ChatRequestHistory.Statues.fail
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
-            MysqlEngine.session.commit()
+            session.commit()
             raise APIException(resp.status_code, "Cognitive Search API 실패", error=resp.json())
 
         if search_results["@odata.count"] == 0:
@@ -174,7 +174,7 @@ class AzureOpenAIUtils:
             chat_request_history.status = ChatRequestHistory.Statues.success
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
-            MysqlEngine.session.commit()
+            session.commit()
             return return_dict
         else:
             file_content = OrderedDict()
@@ -198,7 +198,7 @@ class AzureOpenAIUtils:
                 chat_request_history.status = ChatRequestHistory.Statues.success
                 chat_request_history.response_at = CommonUtils.get_kst_now()
                 chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
-                MysqlEngine.session.commit()
+                session.commit()
                 return return_dict
 
             # Embedding 모델 생성
@@ -248,6 +248,6 @@ class AzureOpenAIUtils:
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
             chat_request_history.reference_file = result["sources"].replace(",", "\n")
-            MysqlEngine.session.commit()
+            session.commit()
 
             return return_dict

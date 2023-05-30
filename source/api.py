@@ -11,6 +11,7 @@ from utils.azure_openai_utils import AzureOpenAIUtils
 from fastapi.middleware.cors import CORSMiddleware
 from domains.bodies import ChatbotQuery, CreateContainerBody, DeleteBlobsBody
 from azure.core.exceptions import AzureError
+from database import MysqlEngine
 from domains import crud
 
 app = FastAPI()
@@ -25,16 +26,32 @@ app.add_middleware(
     allow_headers=origins,
 )
 
+@app.middleware("http")
+async def db_session_middleware(request: Request, call_next):
+    """Common Error Middleware"""
+    try:
+        request.state.session = MysqlEngine.session()
+        return await call_next(request)
+    except AzureError as azure_exc:
+        request.state.db.close()
+        return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
+    finally:
+        request.state.db.close()
 
 @app.middleware("http")
 async def errors_handling(request: Request, call_next):
     """Common Error Middleware"""
     try:
+        request.state.session = MysqlEngine.session()
         return await call_next(request)
     except AzureError as azure_exc:
+        request.state.session.rollback()
         return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
     except Exception as exc:
+        request.state.session.rollback()
         return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
+    finally:
+        request.state.session.close()
 
 
 @app.exception_handler(APIException)
@@ -186,7 +203,7 @@ async def run_indexer(indexer):
 
 
 @app.get("/search", status_code=status.HTTP_200_OK, tags=["LangChain"])
-async def search(query, index_name, vector_store="FAISS"):
+async def search(request: Request, query, index_name, vector_store="FAISS"):
     """Cognitive Search + ChatGPT Langchain 질의
 
     Args:
@@ -198,7 +215,7 @@ async def search(query, index_name, vector_store="FAISS"):
     azure_openai_utils = AzureOpenAIUtils()
     index_list = await azure_openai_utils.get_index_list()
     if len(list(filter(lambda x: x["index_name"] == index_name, index_list))) > 0:
-        return await azure_openai_utils.execute_openai(query, index_name, vector_store)
+        return await azure_openai_utils.execute_openai(request.state.session, query, index_name, vector_store)
     else:
         raise APIException(404, "Cognitive Search 인덱스를 찾을 수 없습니다.")
 
