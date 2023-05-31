@@ -233,7 +233,7 @@ class AzureOpenAIUtils:
                 return_source_documents=True,
             )
 
-            prompt_prefix = 'Think in English and answer in Korean  \n\n'
+            prompt_prefix = 'Please keep your answer brief in Korean.\n\n'
             result = qa({"question":  prompt_prefix + question})
 
             print("질문 :", question)
