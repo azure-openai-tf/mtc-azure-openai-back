@@ -2,7 +2,6 @@
 @created_by ayaan
 @created_at 2023.05.08
 """
-import test
 from fastapi import FastAPI, UploadFile, status, Request
 from fastapi.responses import JSONResponse
 from custom_exception import APIException
@@ -26,18 +25,19 @@ app.add_middleware(
     allow_headers=origins,
 )
 
+
 @app.middleware("http")
 async def errors_handling(request: Request, call_next):
     """Common Error Middleware"""
     try:
         request.state.session = MysqlEngine.session()
         return await call_next(request)
-    except AzureError as azure_exc:
-        request.state.session.rollback()
-        return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
-    except Exception as exc:
-        request.state.session.rollback()
-        return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
+    # except AzureError as azure_exc:
+    #     request.state.session.rollback()
+    #     return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
+    # except Exception as exc:
+    #     request.state.session.rollback()
+    #     return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
     finally:
         request.state.session.close()
 
@@ -204,6 +204,24 @@ async def search(request: Request, query, index_name, vector_store="FAISS"):
     index_list = await azure_openai_utils.get_index_list()
     if len(list(filter(lambda x: x["index_name"] == index_name, index_list))) > 0:
         return await azure_openai_utils.execute_openai(request.state.session, query, index_name, vector_store)
+    else:
+        raise APIException(404, "Cognitive Search 인덱스를 찾을 수 없습니다.")
+
+
+@app.get("/searchv2", status_code=status.HTTP_200_OK, tags=["LangChain"])
+async def searchv2(request: Request, query, index_name, vector_store="FAISS"):
+    """Cognitive Search + ChatGPT Langchain 질의
+
+    Args:
+        indexer (str): Index Name
+        query (str): 질문
+        vector_store(str): 벡터 DB Store 이름 (FAISS/chroma)
+
+    """
+    azure_openai_utils = AzureOpenAIUtils()
+    index_list = await azure_openai_utils.get_index_list()
+    if len(list(filter(lambda x: x["index_name"] == index_name, index_list))) > 0:
+        return await azure_openai_utils.execute_openai_v2(request.state.session, query, index_name, vector_store)
     else:
         raise APIException(404, "Cognitive Search 인덱스를 찾을 수 없습니다.")
 

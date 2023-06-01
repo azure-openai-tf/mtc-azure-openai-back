@@ -9,6 +9,8 @@ from custom_exception import APIException
 from utils.common_utils import CommonUtils
 from collections import OrderedDict
 from azure.core.credentials import AzureKeyCredential
+from azure.search.documents.models import QueryType
+from azure.search.documents import SearchClient
 from azure.search.documents.indexes.aio import SearchIndexerClient
 from azure.search.documents.indexes.aio import SearchIndexClient
 
@@ -34,26 +36,39 @@ load_dotenv()
 class AzureOpenAIUtils:
     """Azure OpenAI Utilities"""
 
-    azure_search_key = os.environ.get("SEARCH_KEY")
     azure_search_endpoint = os.environ.get("SEARCH_ENDPOINT")
     azure_search_api_version = "2021-04-30-preview"
+    content_field = "pages"
+    sourcepage_field = "metadata_storage_name"
+    chatgpt_deployment = "gpt-35-turbo"
+    cognitive_search_credential = AzureKeyCredential(os.environ.get("SEARCH_KEY"))
+    headers = {"Content-Type": "application/json", "api-key": os.environ.get("SEARCH_KEY")}
+    params = {"api-version": "2021-04-30-preview"}
+
     azure_openai_key = os.environ.get("OPEN_AI_KEY")
     azure_openai_endpoint = os.environ.get("OPEN_AI_ENDPOINT")
     azure_openai_api_version = "2023-03-15-preview"
-    pre_prompt = """
-    """
 
-    def __init__(self):
-        self.headers = {"Content-Type": "application/json", "api-key": self.azure_search_key}
-        self.params = {"api-version": self.azure_search_api_version}  # 최신 Preview 버전 2021-04-30-preview
+    openai.api_type = "azure"
+    openai.api_version = "2023-03-15-preview"  # 최신 preview 버전 2023-03-15-preview
+    openai.api_base = os.environ.get("OPEN_AI_ENDPOINT")
+    openai.api_key = os.environ.get("OPEN_AI_KEY")
 
-        self.cognitive_search_credential = AzureKeyCredential(self.azure_search_key)
+    prompt_prefix = """<|im_start|>system
+Find the contents of the query in Source. If you found it, reply in Korean, and if you couldn't find it, say you '자료를 찾지 못하였습니다.'.
+Query:
+{query}
+Sources:
+{sources}
+<|im_end|>
+"""
+    follow_up_questions_prompt_content = """Generate three very brief follow-up questions that the user would likely ask next about their healthcare plan and employee handbook. 
+    Use double angle brackets to reference the questions, e.g. <<Are there exclusions for prescriptions?>>.
+    Try not to repeat questions that have already been asked.
+    Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'"""
 
-        # Azure OpenAI 연결 환경 변수 설정
-        openai.api_type = "azure"  # 중요!
-        openai.api_version = self.azure_openai_api_version  # 최신 preview 버전 2023-03-15-preview
-        openai.api_base = self.azure_openai_endpoint
-        openai.api_key = self.azure_openai_key
+    def nonewlines(self, text: str) -> str:
+        return text.replace("\n", " ").replace("\r", " ")
 
     async def get_index(self, index_name):
         """cognitive Search Get Index"""
@@ -135,7 +150,7 @@ class AzureOpenAIUtils:
 
     async def execute_openai(self, session, question, index_name, vector_store_name):
         """Excute OpenAI"""
-        return_dict = {"question": question, "answer": '자료를 찾지 못하였습니다.', "reference_file": []}
+        return_dict = {"question": question, "answer": "자료를 찾지 못하였습니다.", "reference_file": []}
         # 로그 저장
         start = time.time()
         chat_request_history = ChatRequestHistory(selected_index=index_name, query=question, user_id=22, status=ChatRequestHistory.Statues.running)
@@ -162,7 +177,7 @@ class AzureOpenAIUtils:
         search_results = resp.json()  # 결과값
 
         if resp.status_code != 200:
-            chat_request_history.answer = return_dict['answer']
+            chat_request_history.answer = return_dict["answer"]
             chat_request_history.status = ChatRequestHistory.Statues.fail
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
@@ -170,7 +185,7 @@ class AzureOpenAIUtils:
             raise APIException(resp.status_code, "Cognitive Search API 실패", error=resp.json())
 
         if search_results["@odata.count"] == 0:
-            chat_request_history.answer = return_dict['answer']
+            chat_request_history.answer = return_dict["answer"]
             chat_request_history.status = ChatRequestHistory.Statues.success
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
@@ -194,7 +209,7 @@ class AzureOpenAIUtils:
                     docs.append(Document(page_content=page, metadata={"source": value["file_name"]}))
 
             if len(docs) == 0:
-                chat_request_history.answer = return_dict['answer']
+                chat_request_history.answer = return_dict["answer"]
                 chat_request_history.status = ChatRequestHistory.Statues.success
                 chat_request_history.response_at = CommonUtils.get_kst_now()
                 chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
@@ -216,7 +231,7 @@ class AzureOpenAIUtils:
 
             # LangChain🦜 & Azure GPT🤖 연결
             llm = AzureChatOpenAI(
-                deployment_name="gpt-35-turbo",
+                deployment_name=self.chatgpt_deployment,
                 openai_api_key=self.azure_openai_key,
                 openai_api_base=self.azure_openai_endpoint,
                 openai_api_version=self.azure_openai_api_version,
@@ -233,14 +248,14 @@ class AzureOpenAIUtils:
                 return_source_documents=True,
             )
 
-            prompt_prefix = 'Please keep your answer brief in Korean.\n\n'
-            result = qa({"question":  prompt_prefix + question})
+            prompt_prefix = "Please keep your answer brief in Korean.\n\n"
+            result = qa({"question": prompt_prefix + question})
 
             print("질문 :", question)
             print("답변 :", result["answer"])
             print("📄 참고 자료 :", result["sources"].replace(",", "\n"))
-            return_dict['answer'] = result['answer'].replace('\n', '')
-            return_dict['reference_file'] = result["sources"].split(',')
+            return_dict["answer"] = result["answer"].replace("\n", "")
+            return_dict["reference_file"] = result["sources"].split(",")
             # return_dict['reference_file_link'] = result["sources"]
 
             chat_request_history.answer = result["answer"]
@@ -251,3 +266,56 @@ class AzureOpenAIUtils:
             session.commit()
 
             return return_dict
+
+    async def execute_openai_v2(self, session, question, index_name, vector_store_name):
+        """Excute OpenAI"""
+        return_dict = {"question": question, "answer": "자료를 찾지 못하였습니다.", "reference_file": []}
+        # 로그 저장
+        start = time.time()
+        chat_request_history = ChatRequestHistory(selected_index=index_name, query=question, user_id=22, status=ChatRequestHistory.Statues.running)
+        session.add(chat_request_history)
+        session.commit()
+
+        search_client = SearchClient(endpoint=self.azure_search_endpoint, index_name=index_name, credential=self.cognitive_search_credential)
+        top = 2
+
+        # Step1. Cognitive Search 질문
+        response = search_client.search(
+            question,
+            # filter=filter,
+            query_type=QueryType.SEMANTIC,
+            query_language="en-us",
+            query_speller="lexicon",
+            semantic_configuration_name="semantic-config",
+            top=top,
+            query_caption="extractive|highlight-false",
+        )
+
+        # Step2. Parsing
+        reference_files = [doc[self.sourcepage_field] for doc in response]
+        results = [doc[self.sourcepage_field] + ": " + self.nonewlines(doc[self.content_field][0]) for doc in response]
+        content = "\n".join(results)
+
+        # Step3. Prompt Engineering
+        # follow_up_questions_prompt = self.follow_up_questions_prompt_content
+        prompt = self.prompt_prefix.format(sources=content, query=question)
+
+        completion = openai.Completion.create(
+            engine=self.chatgpt_deployment,
+            prompt=prompt,
+            temperature=0.7,
+            max_tokens=1024,
+            n=1,
+            stop=["<|im_end|>", "<|im_start|>"],
+        )
+
+        return_dict["answer"] = completion.choices[0].text
+        return_dict["reference_file"] = reference_files
+
+        return return_dict
+
+        # return {
+        #     "data_points": results,
+        #     "answer": completion.choices[0].text,
+        #     "thoughts": f"Searched for:<br>{question}<br><br>Prompt:<br>" + prompt.replace("\n", "<br>"),
+        # }
