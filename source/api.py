@@ -20,7 +20,7 @@ from sqlalchemy import asc, desc
 
 app = FastAPI()
 
-origins = ["*"]
+origins = ["https://gentle-grass-0f33d3300.3.azurestaticapps.net"]
 
 app.add_middleware(
     CORSMiddleware,
