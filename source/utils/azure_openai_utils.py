@@ -40,6 +40,8 @@ class AzureOpenAIUtils:
     azure_openai_key = os.environ.get("OPEN_AI_KEY")
     azure_openai_endpoint = os.environ.get("OPEN_AI_ENDPOINT")
     azure_openai_api_version = "2023-03-15-preview"
+    pre_prompt = """
+    """
 
     def __init__(self):
         self.headers = {"Content-Type": "application/json", "api-key": self.azure_search_key}
@@ -96,7 +98,6 @@ class AzureOpenAIUtils:
         await search_indexer_client.run_indexer(index_name)
 
         await search_indexer_client.close()
-        print("index 업데이트 완료")
 
     async def cognitive_search_get_indexer_status(self, indexer_name):
         """cognitive_search_get_indexer_status"""
@@ -132,13 +133,14 @@ class AzureOpenAIUtils:
 
         return result
 
-    async def execute_openai(self, question, index_name, vector_store_name):
+    async def execute_openai(self, session, question, index_name, vector_store_name):
         """Excute OpenAI"""
+        return_dict = {"question": question, "answer": '자료를 찾지 못하였습니다.', "reference_file": []}
         # 로그 저장
         start = time.time()
-        chat_request_history = ChatRequestHistory(selected_index=index_name, query="test", user_id=22, status=ChatRequestHistory.Statues.running)
-        MysqlEngine.session.add(chat_request_history)
-        MysqlEngine.session.commit()
+        chat_request_history = ChatRequestHistory(selected_index=index_name, query=question, user_id=22, status=ChatRequestHistory.Statues.running)
+        session.add(chat_request_history)
+        session.commit()
 
         # Call Cognitive API
         url = self.azure_search_endpoint + "/indexes/" + index_name + "/docs"
@@ -160,26 +162,24 @@ class AzureOpenAIUtils:
         search_results = resp.json()  # 결과값
 
         if resp.status_code != 200:
-            answer = "자료를 찾지 못하였습니다."
-            chat_request_history.answer = answer
+            chat_request_history.answer = return_dict['answer']
             chat_request_history.status = ChatRequestHistory.Statues.fail
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
-            MysqlEngine.session.commit()
+            session.commit()
             raise APIException(resp.status_code, "Cognitive Search API 실패", error=resp.json())
 
         if search_results["@odata.count"] == 0:
-            answer = "자료를 찾지 못하였습니다."
-            chat_request_history.answer = answer
+            chat_request_history.answer = return_dict['answer']
             chat_request_history.status = ChatRequestHistory.Statues.success
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
-            MysqlEngine.session.commit()
-            return answer
+            session.commit()
+            return return_dict
         else:
             file_content = OrderedDict()
             for result in search_results["value"]:
-                if result["@search.rerankerScore"] > 0.04:  # Semantic Search 최대 점수 4점, 상위 40%
+                if result["@search.rerankerScore"] > 0.03:  # Semantic Search 최대 점수 4점
                     file_content[result["metadata_storage_path"]] = {
                         "chunks": result["pages"][:1],
                         "caption": result["@search.captions"][0]["text"],
@@ -194,13 +194,12 @@ class AzureOpenAIUtils:
                     docs.append(Document(page_content=page, metadata={"source": value["file_name"]}))
 
             if len(docs) == 0:
-                answer = "자료를 찾지 못하였습니다."
-                chat_request_history.answer = answer
+                chat_request_history.answer = return_dict['answer']
                 chat_request_history.status = ChatRequestHistory.Statues.success
                 chat_request_history.response_at = CommonUtils.get_kst_now()
                 chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
-                MysqlEngine.session.commit()
-                return answer
+                session.commit()
+                return return_dict
 
             # Embedding 모델 생성
             # 아래소스에서 chunk_size=1 이 아닌 다른 값을 넣으면 다음 소스에서 에러가 난다.
@@ -217,7 +216,7 @@ class AzureOpenAIUtils:
 
             # LangChain🦜 & Azure GPT🤖 연결
             llm = AzureChatOpenAI(
-                deployment_name="chat",
+                deployment_name="gpt-35-turbo",
                 openai_api_key=self.azure_openai_key,
                 openai_api_base=self.azure_openai_endpoint,
                 openai_api_version=self.azure_openai_api_version,
@@ -234,17 +233,21 @@ class AzureOpenAIUtils:
                 return_source_documents=True,
             )
 
-            result = qa({"question": question})
+            prompt_prefix = 'Please keep your answer brief in Korean.\n\n'
+            result = qa({"question":  prompt_prefix + question})
 
             print("질문 :", question)
             print("답변 :", result["answer"])
             print("📄 참고 자료 :", result["sources"].replace(",", "\n"))
+            return_dict['answer'] = result['answer'].replace('\n', '')
+            return_dict['reference_file'] = result["sources"].split(',')
+            # return_dict['reference_file_link'] = result["sources"]
 
             chat_request_history.answer = result["answer"]
             chat_request_history.status = ChatRequestHistory.Statues.success
             chat_request_history.response_at = CommonUtils.get_kst_now()
             chat_request_history.running_time = CommonUtils.get_running_time(start, time.time())
             chat_request_history.reference_file = result["sources"].replace(",", "\n")
-            MysqlEngine.session.commit()
+            session.commit()
 
-            return {"question": question, "answer": result["answer"], "reference_file": result["sources"].replace(",", "\n")}
+            return return_dict
