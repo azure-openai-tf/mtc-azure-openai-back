@@ -45,6 +45,7 @@ class AzureOpenAIUtils:
     headers = {"Content-Type": "application/json", "api-key": os.environ.get("SEARCH_KEY")}
     params = {"api-version": "2021-04-30-preview"}
 
+    search_top = 2
     azure_openai_key = os.environ.get("OPEN_AI_KEY")
     azure_openai_endpoint = os.environ.get("OPEN_AI_ENDPOINT")
     azure_openai_api_version = "2023-03-15-preview"
@@ -55,7 +56,8 @@ class AzureOpenAIUtils:
     openai.api_key = os.environ.get("OPEN_AI_KEY")
 
     prompt_prefix = """<|im_start|>system
-Find the contents of the query in Source. If you found it, reply in Korean, and if you couldn't find it, say you '자료를 찾지 못하였습니다.'.
+Find the contents of the query in Source. If you found it, and if you couldn't find it, say you '자료를 찾지 못하였습니다.
+All answers are in Korean.
 Query:
 {query}
 Sources:
@@ -168,7 +170,7 @@ Sources:
             "select": "*",
             "$count": "true",
             "speller": "lexicon",
-            "$top": "5",
+            "$top": self.search_top,
             "answers": "extractive|count-3",
             "captions": "extractive|highlight-false",
         }
@@ -248,8 +250,12 @@ Sources:
                 return_source_documents=True,
             )
 
-            prompt_prefix = "Please keep your answer brief in Korean.\n\n"
-            result = qa({"question": prompt_prefix + question})
+            prompt_prefix = f"""
+            Find the contents of the query in Source. If you found it, and if you couldn't find it, say you '자료를 찾지 못하였습니다.
+            All answers are in Korean.
+            question: {question}
+            """
+            result = qa({"question": prompt_prefix})
 
             print("질문 :", question)
             print("답변 :", result["answer"])
@@ -277,7 +283,6 @@ Sources:
         session.commit()
 
         search_client = SearchClient(endpoint=self.azure_search_endpoint, index_name=index_name, credential=self.cognitive_search_credential)
-        top = 2
 
         # Step1. Cognitive Search 질문
         response = search_client.search(
@@ -287,7 +292,7 @@ Sources:
             query_language="en-us",
             query_speller="lexicon",
             semantic_configuration_name="semantic-config",
-            top=top,
+            top=self.search_top,
             query_caption="extractive|highlight-false",
         )
 
