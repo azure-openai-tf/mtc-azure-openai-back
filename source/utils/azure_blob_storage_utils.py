@@ -22,8 +22,8 @@ class AzureBlobStorageUtils:
     azure_storage_key = os.getenv("AZURE_STORAGE_KEY")
 
     def __init__(self):
-        connection_str = f"DefaultEndpointsProtocol=https;AccountName={self.azure_storage_account};AccountKey={self.azure_storage_key};EndpointSuffix=core.windows.net"
-        self.blob_service_client = BlobServiceClient.from_connection_string(connection_str)
+        self.connection_str = f"DefaultEndpointsProtocol=https;AccountName={self.azure_storage_account};AccountKey={self.azure_storage_key};EndpointSuffix=core.windows.net"
+        self.blob_service_client = BlobServiceClient.from_connection_string(self.connection_str)
         # self.container_client = self.blob_service_client.get_container_client(container_name)
 
     async def list_containers(self):
@@ -126,9 +126,14 @@ class AzureBlobStorageUtils:
             if not file_name in blobs_list:
                 raise APIException(404, "삭제할 파일을 찾을 수 없습니다.")
 
-        container_client = self.blob_service_client.get_container_client(container_name)
+        # container_client = self.blob_service_client.get_container_client(container_name)
+        container_client = ContainerClient.from_connection_string(self.connection_str, container_name)
+
         try:
-            await container_client.delete_blobs(*file_names)
+            for file_name in file_names:
+                await container_client.delete_blob(blob=file_name)
+                # await container_client.delete_blobs(file_name)
+
         finally:
             await self.close_client(container_client)
 
