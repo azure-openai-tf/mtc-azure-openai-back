@@ -143,7 +143,7 @@ Sources:
         else:
             messages.append({"role": "user", "content": query})
 
-        response = openai.ChatCompletion.create(engine="chat", messages=messages)
+        response = openai.ChatCompletion.create(engine=self.chatgpt_deployment, messages=messages)
         messages.append(response["choices"][0]["message"])
 
         result = {"messages": messages, "answer": response["choices"][0]["message"]["content"]}

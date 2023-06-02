@@ -32,18 +32,18 @@ async def errors_handling(request: Request, call_next):
     try:
         request.state.session = MysqlEngine.session()
         return await call_next(request)
-    # except AzureError as azure_exc:
-    #     request.state.session.rollback()
-    #     return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
-    # except Exception as exc:
-    #     request.state.session.rollback()
-    #     return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
+    except AzureError as azure_exc:
+        request.state.session.rollback()
+        return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
+    except Exception as exc:
+        request.state.session.rollback()
+        return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
     finally:
         request.state.session.close()
 
 
 @app.exception_handler(APIException)
-async def unicorn_exception_handler(request: Request, exc: APIException):
+async def unicorn_exception_handler(exc: APIException):
     """Common Exception Handler
 
     Args:
@@ -243,6 +243,14 @@ async def query_chatbot(chatbot_query: ChatbotQuery):
 
 
 @app.get("/chat-request-histories", status_code=status.HTTP_200_OK, tags=["Chat Request History"])
-async def get_chat_request_histories():
-    """채팅 목록 조회"""
-    return crud.get_chat_request_histories()
+async def get_chat_request_histories(request: Request, page: int = 1, size: int = 10):
+    """채팅 목록 조회
+
+    Args:
+        page (int, optional): 페이지 번호. Defaults to 1.
+        size (int, optional): 페이지 크기. Defaults to 10.
+
+    Returns:
+        dict: {"page": 1, "size":10, items: []}
+    """
+    return {"page": page, "size": size, "items": crud.get_chat_request_histories(request.state.session, page, size)}
