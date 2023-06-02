@@ -43,7 +43,7 @@ async def errors_handling(request: Request, call_next):
 
 
 @app.exception_handler(APIException)
-async def unicorn_exception_handler(exc: APIException):
+async def unicorn_exception_handler(request: Request, exc: APIException):
     """Common Exception Handler
 
     Args:
