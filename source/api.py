@@ -15,7 +15,7 @@ from domains import crud
 
 app = FastAPI()
 
-origins = ["https://gentle-grass-0f33d3300.3.azurestaticapps.net"]
+origins = ["https://gentle-grass-0f33d3300.3.azurestaticapps.net", "http://localhost:5173"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,12 +32,12 @@ async def errors_handling(request: Request, call_next):
     try:
         request.state.session = MysqlEngine.session()
         return await call_next(request)
-    except AzureError as azure_exc:
-        request.state.session.rollback()
-        return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
-    except Exception as exc:
-        request.state.session.rollback()
-        return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
+    # except AzureError as azure_exc:
+    #     request.state.session.rollback()
+    #     return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
+    # except Exception as exc:
+    #     request.state.session.rollback()
+    #     return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
     finally:
         request.state.session.close()
 

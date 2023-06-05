@@ -252,7 +252,7 @@ Sources:
 
             prompt_prefix = f"""
             Find the contents of the query in Source. If you found it, and if you couldn't find it, say you '자료를 찾지 못하였습니다.
-            All answers are in Korean.
+            Please answer all answers in Korean with honorific like '~입니다'
             question: {question}
             """
             result = qa({"question": prompt_prefix})
