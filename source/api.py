@@ -8,7 +8,7 @@ from custom_exception import APIException
 from utils.azure_blob_storage_utils import AzureBlobStorageUtils
 from utils.azure_openai_utils import AzureOpenAIUtils
 from fastapi.middleware.cors import CORSMiddleware
-from domains.bodies import ChatbotQuery, CreateContainerBody, DeleteBlobsBody
+from domains.bodies import ChatbotQuery, CreateContainerBody, DeleteBlobsBody, LoginBody
 from azure.core.exceptions import AzureError
 from database import MysqlEngine
 from domains import crud
@@ -63,6 +63,15 @@ async def unicorn_exception_handler(request: Request, exc: APIException):
 async def root():
     """Root"""
     return {"message": "Hello World"}
+
+
+@app.post("/login", tags=["Login"])
+async def login(login_body: LoginBody):
+    """Login"""
+    if login_body.id == "admin" and login_body.password == "mtcopenaitf1234!":
+        return "success"
+    else:
+        raise APIException(401, "ID 또는 Password가 일치하지 않습니다.", "Unauthorized")
 
 
 @app.get("/containers", status_code=status.HTTP_200_OK, tags=["Azure Blob Storage"])
