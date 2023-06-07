@@ -68,7 +68,7 @@ async def root():
 @app.post("/login", tags=["Login"])
 async def login(login_body: LoginBody):
     """Login"""
-    if login_body.id == "admin" and login_body.password == "mtcopenaitf1234!":
+    if login_body.id in ["admin", "user"] and login_body.password == "mtcopenaitf1234!":
         return "success"
     else:
         raise APIException(401, "ID 또는 Password가 일치하지 않습니다.", "Unauthorized")
