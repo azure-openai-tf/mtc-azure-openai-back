@@ -163,7 +163,7 @@ Sources:
         url = self.azure_search_endpoint + "/indexes/" + index_name + "/docs"
         params = {
             "api-version": self.azure_search_api_version,
-            "search": question,
+            "search": "*",
             "queryLanguage": "en-US",
             "queryType": "semantic",
             "semanticConfiguration": "semantic-config",
@@ -194,21 +194,12 @@ Sources:
             session.commit()
             return return_dict
         else:
+            docs = []
             file_content = OrderedDict()
             for result in search_results["value"]:
-                if result["@search.rerankerScore"] > 0.03:  # Semantic Search 최대 점수 4점
-                    file_content[result["metadata_storage_path"]] = {
-                        "chunks": result["pages"][:1],
-                        "caption": result["@search.captions"][0]["text"],
-                        "score": result["@search.rerankerScore"],
-                        "file_name": result["metadata_storage_name"],
-                    }
-
-            # AzureOpenAI Service 연결
-            docs = []
-            for key, value in file_content.items():
-                for page in value["chunks"]:
-                    docs.append(Document(page_content=page, metadata={"source": value["file_name"]}))
+                print(result["pages"])
+                for page in result["pages"]:
+                    docs.append(Document(page_content=page, metadata={"source": result["metadata_storage_name"]}))
 
             if len(docs) == 0:
                 chat_request_history.answer = return_dict["answer"]
