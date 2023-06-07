@@ -32,12 +32,12 @@ async def errors_handling(request: Request, call_next):
     try:
         request.state.session = MysqlEngine.session()
         return await call_next(request)
-    # except AzureError as azure_exc:
-    #     request.state.session.rollback()
-    #     return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
-    # except Exception as exc:
-    #     request.state.session.rollback()
-    #     return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
+    except AzureError as azure_exc:
+        request.state.session.rollback()
+        return JSONResponse(status_code=500, content={"code": 500, "message": "Azure API에 문제가 발생하였습니다.", "error": str(azure_exc)})
+    except Exception as exc:
+        request.state.session.rollback()
+        return JSONResponse(status_code=500, content={"code": 500, "message": "에러가 발생하였습니다.", "error": str(exc)})
     finally:
         request.state.session.close()
 
@@ -68,7 +68,7 @@ async def root():
 @app.post("/login", tags=["Login"])
 async def login(login_body: LoginBody):
     """Login"""
-    if login_body.id == "admin" and login_body.password == "mtcopenaitf1234!":
+    if login_body.id in ["admin", "user"] and login_body.password == "mtcopenaitf1234!":
         return "success"
     else:
         raise APIException(401, "ID 또는 Password가 일치하지 않습니다.", "Unauthorized")
